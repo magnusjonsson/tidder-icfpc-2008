@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+if [[ `uname` =~ 'Darwin' ]]
+then
+    SHARED=-bundle
+else
+    SHARED=-shared
+fi
+
+gcc $SHARED -o native.so native.c
