@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# i *think* that linux requires "-shared" instead of "-bundle"
+gcc -bundle -o native.so native.c

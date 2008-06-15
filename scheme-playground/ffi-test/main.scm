@@ -6,3 +6,6 @@
 
 (printf (foo))
 (printf "\n")
+
+(printf (number->string (native-bar)))
+(printf "\n")
