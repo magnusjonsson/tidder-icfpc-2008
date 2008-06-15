@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ `uname` =~ 'darwin' ]]
+if [[ `uname` =~ '.*darwin.*' ]]
 then
     SHARED=-bundle
 else
