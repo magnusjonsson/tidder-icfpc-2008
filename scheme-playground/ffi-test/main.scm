@@ -4,11 +4,7 @@
 
 (require "test-module.scm")
 
-(printf (foo))
-(printf "\n")
-
-(printf (number->string (native-bar)))
-(printf "\n")
-
-(display (sum-vector (vector 1 2 3 4)))
-(newline)
+(printf "~a~n" (foo))
+(printf "~a~n" (native-bar))
+(printf "~a~n" (sum-vector (vector 1 2 3 4)))
+(apply printf "~a and ~a~n" (sum-and-reverse-vector (vector 1 2 3 4)))

@@ -1,22 +1,21 @@
 #lang scheme
 
-(require scheme/foreign)
-(unsafe!)
+(require scheme/foreign) (unsafe!)
+(provide foo native-bar sum-vector sum-and-reverse-vector)
 
-(provide foo)
 (define (foo) "Hello World!")
 
-(define native-lib (ffi-lib "native.so"))
+(define native-lib (ffi-lib "native"))
+
 (define native-bar (get-ffi-obj "bar" native-lib (_fun -> _int)))
-(provide native-bar)
-
-
-(define native-sum-array
-  (get-ffi-obj "sum_array" native-lib
-               (_fun (_vector i _int) _int -> _int)))
 
 (define sum-vector
-  (lambda (vector)
-    (native-sum-array vector (vector-length vector))))
+  (get-ffi-obj "sum_array" native-lib
+               (_fun (v) :: ((_vector i _int) = v) (_int = (vector-length v))
+                             -> _int)))
 
-(provide sum-vector)
+(define sum-and-reverse-vector
+  (get-ffi-obj "sum_rev" native-lib
+               (_fun (v) :: (rev : (_vector io _int (vector-length v)) = v)
+                            (_int = (vector-length v))
+                            -> (sum : _int) -> (list sum rev))))
