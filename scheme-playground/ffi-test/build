@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [[ `uname` =~ 'darwin' ]]
+then
+    SHARED=-bundle
+else
+    SHARED=-shared
+fi
+
+# i *think* that linux requires "-shared" instead of "-bundle"
+gcc $SHARED -o native.so native.c
