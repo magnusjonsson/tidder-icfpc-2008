@@ -9,3 +9,6 @@
 
 (printf (number->string (native-bar)))
 (printf "\n")
+
+(display (sum-vector (vector 1 2 3 4)))
+(newline)
