@@ -11,4 +11,4 @@ def c_array(c_type, p_list):
 	return c_array_type(*p_list)
 
 foo = [1, 2, 3, 4, 5]
-print native.sum_array(c_array(c_int, foo), len(c_foo))
+print native.sum_array(c_array(c_int, foo), len(foo))
