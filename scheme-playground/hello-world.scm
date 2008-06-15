@@ -1,21 +1,6 @@
-; Run this program like this:
-; mzscheme -r hello-world.scm
+#! /usr/bin/env mzscheme
 
-;; declare a module
-(module hello-world   ; this is the name of the module
-        mzscheme      ; this is the language used
+#lang scheme
 
-   ;; the module body begins here.
-
-   ;; definitions and actions to perform on loading
-   ;; go into the module body.
-
-   (display "Hello world!")
-   (newline)
-
-   )
-
-
-;; require the module so that the module body
-;; gets executed.
-(require hello-world) 
+(display "Hello world!")
+(newline)
