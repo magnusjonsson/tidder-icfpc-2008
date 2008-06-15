@@ -1,10 +1,21 @@
-; I am running this program like this:
+; Run this program like this:
 ; mzscheme -r hello-world.scm
 
-(display "bla")    ; this shows up
-(newline)
+;; declare a module
 (module hello-world   ; this is the name of the module
         mzscheme      ; this is the language used
-   (display "Hello world!")   ; but this does not show up!
+
+   ;; the module body begins here.
+
+   ;; definitions and actions to perform on loading
+   ;; go into the module body.
+
+   (display "Hello world!")
    (newline)
+
    )
+
+
+;; require the module so that the module body
+;; gets executed.
+(require hello-world) 
