@@ -4,11 +4,13 @@
 
 (require "test-module.scm")
 
-(printf (foo))
-(printf "\n")
+(printf "foo: ~a~n" (foo))
+(printf "bar: ~a~n" (native-bar))
 
-(printf (number->string (native-bar)))
-(printf "\n")
+(printf "sum-vector: ~a~n" (sum-vector (vector 1 2 3 4)))
+(printf "sum-float-vector: ~a~n" (sum-float-vector (vector 1.0 1.5 100.0)))
 
-(display (sum-vector (vector 1 2 3 4)))
-(newline)
+(define v (vector 1.0 2.0 3.0 4.0))
+(printf "original: ~a~n" v)
+(printf "squared : ~a~n" (square-float-vector v))
+(printf "original: ~a~n" v)
