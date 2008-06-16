@@ -2,7 +2,7 @@
 
 from ctypes import *
 
-native = cdll.LoadLibrary("native.so")
+native = cdll.LoadLibrary("./native.so")
 
 print native.bar()
 
