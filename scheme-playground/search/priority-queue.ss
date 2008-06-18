@@ -110,7 +110,6 @@
 
     (set-prio-count! p last-index)
     (vector-set! v last-index #f)
-   
     (bubble-down! 0 last-value)
     first-value))
 
