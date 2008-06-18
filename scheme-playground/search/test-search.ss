@@ -17,8 +17,8 @@
                   (and (= (car state) target-x)
                        (= (cdr state) target-y)))
                 (lambda (state)
-                  (+ (ceiling (abs (/ (- (car state) target-x) 3)))
-                     (ceiling (abs (/ (- (cdr state) target-y) 5))))
+                  (+ (ceiling (abs (/ (- (car state) target-x) 5)))
+                     (ceiling (abs (/ (- (cdr state) target-y) 3))))
 ;                  0
                   )
                 (lambda (state)
