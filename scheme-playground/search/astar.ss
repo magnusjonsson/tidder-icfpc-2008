@@ -5,6 +5,8 @@
 
 (provide a*)
 
+(define-struct item (prio depth state path))
+
 (define (a* init-state
             goal-reached?-fn
             heuristic-fn
@@ -13,47 +15,38 @@
             on-success-fn)
   (define depth-hash     (make-hash))
   (define heuristic-hash (make-hash))
-  (define frontier       (prio:make <))
+  (define (item-< item1 item2)
+    (< (item-prio item1)
+       (item-prio item2)))
+  (define frontier       (prio:make item-<))
+  (define move-cost      car)
 
-  (define (heuristic state)
-    (hash-memo heuristic-hash
-               heuristic-fn
-               state))
-
-  (define move-cost car)
- 
   (define (add! depth state path)
-    (let ((h (heuristic state)))
-      (hash-set! depth-hash state depth)
-      (prio:insert! frontier
-                    (+ depth h)
-                    (list depth state path))))
-  
-  (define (maybe-add! depth state path)
     (let ((prev-depth (hash-ref depth-hash state #f)))
       (when (or (not prev-depth)
                 (< depth prev-depth))
-        (add! depth state path))))
-  
-  (define (expand-a-state!)
-    (let* ((item  (prio:extract-min! frontier))
-           (depth (cadr item))
-           (state (caddr item))
-           (path  (cadddr item)))
-      (when (goal-reached?-fn state)
-        (on-success-fn path))
-      (hash-remove! heuristic-hash state) ; save a little memory since it won't be needed any more
-      ; (hash-set! depth-hash state 0)      ; save a little memory in case of rationals/bignums
-      (for-each (lambda (move)
-                  (let ((next-state (make-move-fn state move)))
-                    (maybe-add! (+ depth (move-cost move))
-                                next-state
-                                (cons move path))))
-                (possible-moves-fn state))))
+        (let ((h (hash-memo heuristic-hash
+                            heuristic-fn
+                            state))) 
+          (hash-set! depth-hash state depth)
+          (prio:insert! frontier (make-item (+ depth h) depth state path))))))
   
   (add! 0 init-state '())
   
   (let loop ()
     (unless (prio:empty? frontier)
-      (expand-a-state!)
+      (let* ((item  (prio:extract-min! frontier))
+             (depth (item-depth item))
+             (state (item-state item))
+             (path  (item-path item)))
+        (when (goal-reached?-fn state)
+          (on-success-fn path))
+        (hash-remove! heuristic-hash state) ; save a little memory since it won't be needed any more
+        ; (hash-set! depth-hash state 0)      ; save a little memory in case of rationals/bignums
+        (for-each (lambda (move)
+                    (let ((next-state (make-move-fn state move)))
+                      (add! (+ depth (move-cost move))
+                            next-state
+                            (cons move path))))
+                  (possible-moves-fn state)))
       (loop))))
