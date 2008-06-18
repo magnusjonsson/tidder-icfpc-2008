@@ -28,12 +28,10 @@ def astar(problem):
         qitem = heapq.heappop(heap)
         state = qitem.state
         depth = qitem.depth
-        if depth != best_depth[state]:
-            continue
-        del hcache[state]  # save some memory from now on
         path = qitem.path
         if problem.is_goal(state):
             yield path
+        del hcache[state]  # save some memory from now on
         for (cost,move) in problem.possible_moves(state):
             next_state = problem.make_move(state,move)
             addState(next_state, depth+cost, (move, path))
