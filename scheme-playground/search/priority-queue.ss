@@ -1,11 +1,11 @@
 #lang scheme
 
-;(require srfi/17)
 (require srfi/43) ; vector-swap!
 
 (provide make
          prio?
          empty?
+         length
          insert!
          extract-min!
          )
@@ -79,6 +79,8 @@
 
 (define (empty? p)
   (= (prio-count p) 0))
+
+(define length prio-count)
 
 (define (key< v a b)
   (< (car (vector-ref v a))

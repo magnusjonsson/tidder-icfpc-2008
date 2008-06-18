@@ -48,8 +48,10 @@
   (prio:extract-min! (*frontier*)))
 
 (define (maybe-add! depth state path)
-  (when (< depth (or (depth-ref state #f) (+ depth 1)))
-    (add! depth state path)))
+  (let ((previous-depth (depth-ref state #f)))
+    (when (or (not previous-depth)
+              (< depth previous-depth))
+      (add! depth state path))))
 
 (define (success! path)
   ((*on-success-fn*) path))
@@ -65,7 +67,7 @@
          (path  (cadddr item)))
     (check-goal! state path)
     (hash-remove! (*heuristic-hash*) state) ; save a little memory since it won't be needed any more
-;    (depth-set! state 0)                    ; save a little memory in case of rationals/bignums
+    ; (depth-set! state 0)                    ; save a little memory in case of rationals/bignums
     (for-each (lambda (move)
                 (let ((next-state (make-move state move)))
                   (maybe-add! (+ depth (move-cost move))
