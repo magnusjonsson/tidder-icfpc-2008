@@ -7,6 +7,10 @@
 
 (define-struct item (prio depth state path))
 
+(define (item-< item1 item2)
+  (< (item-prio item1)
+     (item-prio item2)))
+
 (define (a* init-state
             goal-reached?-fn
             heuristic-fn
@@ -15,9 +19,6 @@
             on-success-fn)
   (define depth-hash     (make-hash))
   (define heuristic-hash (make-hash))
-  (define (item-< item1 item2)
-    (< (item-prio item1)
-       (item-prio item2)))
   (define frontier       (prio:make item-<))
   (define move-cost      car)
 

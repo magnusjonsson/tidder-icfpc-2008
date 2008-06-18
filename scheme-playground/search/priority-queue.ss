@@ -82,32 +82,36 @@
 
 (define length prio-count)
 
-(define (bubble-down! <-fn v i vi c)
-  (let* ((j (first-child-index i))
-         (k (+ j 1)))
-    (if (>= j c)
-        (vector-set! v i vi)
-        (let* ((vj (vector-ref v j))
-               (vk (if (>= k c) vj (vector-ref v k))))
-          (if (<-fn vk vj)
-              (bubble-down-aux! <-fn v i vi k vk c)
-              (bubble-down-aux! <-fn v i vi j vj c))))))
-
-(define (bubble-down-aux! <-fn v i vi j vj c)
-  (if (<-fn vj vi)
-      (begin
-        (vector-set! v i vj)
-        (bubble-down! <-fn v j vi c))
-      (vector-set! v i vi)))
-
 (define (extract-min! p)
   (let* ((v            (prio-vector p))
+         (<-fn         (prio-<-fn p))
          (first-value  (vector-ref v 0))
          (last-index   (- (prio-count p) 1))
          (last-value   (vector-ref v last-index)))
+    (define (bubble-down! i vi)
+      (let ((j (first-child-index i)))
+        (if (>= j last-index)
+            (vector-set! v i vi)
+            (let* ((vj (vector-ref v j))
+                   (k (add1 j)))
+              (if (>= k last-index)
+                  (bubble-down-aux! i vi j vj)
+                  (let ((vk (if (>= k last-index) vj (vector-ref v k))))
+                    (if (<-fn vk vj)
+                        (bubble-down-aux! i vi k vk)
+                        (bubble-down-aux! i vi j vj))))))))
+    
+    (define (bubble-down-aux! i vi j vj)
+      (if (<-fn vj vi)
+          (begin
+            (vector-set! v i vj)
+            (bubble-down! j vi))
+          (vector-set! v i vi)))
+
     (set-prio-count! p last-index)
     (vector-set! v last-index #f)
-    (bubble-down! (prio-<-fn p) v 0 last-value last-index)
+   
+    (bubble-down! 0 last-value)
     first-value))
 
 (define (test)
