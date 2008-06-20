@@ -22,10 +22,8 @@ end
 functor AStar (P : PROBLEM) = struct
   structure PrioOrder = struct
     type ord_key = P.cost * P.state * P.cost * P.move list
-    fun compare ((a,_,b,_),(c,_,d,_)) =
-        case P.CostOrder.compare (a,c) of
-            EQUAL => P.CostOrder.compare (b,d) (* note: backwards comparison *)
-          | unequal => unequal
+    fun compare ((a,_,_,_),(c,_,_,_)) =
+        P.CostOrder.compare (a,c)
   end
   structure Frontier = PrioQueue(PrioOrder)
   exception NotInDepthHash
