@@ -1,0 +1,24 @@
+--- Language and tools ---
+
+             python mzscheme    c++   java  haskell    sml  ocaml
+Profiler          ?     Good   Okay      ?     Okay   Good      ?
+repl           Good     Good    Bad    Bad     Good   Good   Good
+Libraries      Good     Okay   Good   Good     Okay   Okay   Okay
+Correctness    Okay     Okay    Bad   Good     Good   Good   Good
+Documentation  Good     Okay   Okay   Good     Good   Okay   Good
+FFI            Good     Good   Good      ?        ?      ?      ?
+
+
+--- A* benchmark ---
+
+Magnus implemented A* in various langauges and benchmarked them:
+
+             python mzscheme    c++   java  haskell    sml  ocaml
+time(ms)       8745     2640    386   3536       *     762   1374
+
+wc loc           76      248    203    190      109    174    113
+wc words        194      722    500    537      492    699    465
+wc bytes       2167     6827   4814   6057     3993   5947   3507
+
+* Haskell ran out of memory, couldn't figure out why.
+

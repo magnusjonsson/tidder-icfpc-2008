@@ -1,0 +1,1 @@
+rm -f *.o *.hi AStarTest.prof *~ AStarTest

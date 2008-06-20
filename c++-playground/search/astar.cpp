@@ -16,6 +16,8 @@ public:
   virtual State makeMove(State const& state, Move const& move) = 0;
 };
 
+int balance = 0;
+
 template<class State, class Move>
 class AStar {
 private:
@@ -26,6 +28,7 @@ private:
       , next(n)
       , refcount(1)
     {
+      balance++;
       if (n) {
         n->incref();
       }
@@ -33,6 +36,7 @@ private:
     ~ConsPath() {
       if (next)
         next->decref();
+      balance--;
     }
     Move move;
     ConsPath* next;
@@ -88,7 +92,9 @@ public:
   }
   ~AStar() {
     while(!frontier.empty()) {
-      delete frontier.top().path;
+      ConsPath* p = frontier.top().path;
+      if (p)
+        p->decref();
       frontier.pop();
     }
   }
@@ -100,26 +106,28 @@ public:
       State& state = item.state;
       ConsPath* path = item.path;
 
-      std::vector<Move> moves = problem->possibleMoves(state);
-      for(int i=0;i<moves.size();i++) {
-        Move& move = moves[i];
-        State nextState = problem->makeMove(state,move);
-        add(depth+problem->moveCost(move),
-            nextState,
-            new ConsPath(move, path));
-      }
-      if (problem->isGoal(state)) {
-        std::cout << state.first << " " << state.second << std::endl;
-        std::vector<Move>* result = new std::vector<Move>();
-        ConsPath* p = path;
-        while(p) {
-          result->push_back(p->move);
-          p = p->next;
+      if (depth == depthMap[state]) {
+        std::vector<Move> moves = problem->possibleMoves(state);
+        for(int i=0;i<moves.size();i++) {
+          Move& move = moves[i];
+          State nextState = problem->makeMove(state,move);
+          add(depth+problem->moveCost(move),
+              nextState,
+              new ConsPath(move, path));
         }
-        if (path) {
-          path->decref();
+        if (problem->isGoal(state)) {
+          std::cout << state.first << " " << state.second << std::endl;
+          std::vector<Move>* result = new std::vector<Move>();
+          ConsPath* p = path;
+          while(p) {
+            result->push_back(p->move);
+            p = p->next;
+          }
+          if (path) {
+            path->decref();
+          }
+          return result;
         }
-        return result;
       }
       if (path) {
         path->decref();
@@ -177,16 +185,19 @@ public:
 };
 
 int main() {
-  P p;
-  AStar<P::State,P::Move> a(&p);
-  std::vector<char>* sol = a.nextSolution();
-  if (sol) {
-    printf("%i\n",sol->size());
-    for(int i=0;i<sol->size();i++) {
-      printf("%c",(*sol)[i]);
+  {
+    P p;
+    AStar<P::State,P::Move> a(&p);
+    std::vector<char>* sol = a.nextSolution();
+    if (sol) {
+      printf("%i\n",sol->size());
+      for(int i=0;i<sol->size();i++) {
+        printf("%c",(*sol)[i]);
+      }
+      printf("\n");
+      delete sol;
     }
-    printf("\n");
-    delete sol;
   }
+  printf("new - delete: %i\n",balance);
   return 0;
 }

@@ -42,7 +42,12 @@ class AStar implements Iterable<List<Object>> {
         this.frontier = new PriorityQueue<Item>
             (1024, new Comparator<Item>() {
                 public int compare(Item a, Item b) {
-                    return Double.compare(a.priority,b.priority);
+                    int ord = Double.compare(a.priority,b.priority);
+                    /*
+                    if (ord == 0)
+                       ord = Double.compare(b.depth,a.depth);
+                    */
+                    return ord;
                 }
             });
         add(0, problem.initialState(), null);
@@ -56,8 +61,9 @@ class AStar implements Iterable<List<Object>> {
             double depth = item.depth;
             ConsPath path = item.path;
             for (Object move : problem.possibleMoves(state)) {
+                double nextDepth = depth + problem.moveCost(move);
                 Object nextState = problem.makeMove(state,move);
-                add(depth, nextState, new ConsPath(move, path));
+                add(nextDepth, nextState, new ConsPath(move, path));
             }
             if (problem.isGoal(state)) {
                 ArrayList<Object> solution = new ArrayList<Object>();

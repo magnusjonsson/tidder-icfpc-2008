@@ -1,0 +1,1 @@
+rm -rf *~ gmon.out a.out

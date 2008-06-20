@@ -1,0 +1,1 @@
+rm -rf *.o *.cmo *.cmx *.cmi *~ a.out ocamlprof.dump

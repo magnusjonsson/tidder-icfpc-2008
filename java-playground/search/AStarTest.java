@@ -17,7 +17,7 @@ class AStarTest {
             return x == o.x && y == o.y;
         }
         public int hashCode() {
-            return x * 12358123 + y * 385912384;
+            return x * 12358123 + y;
         }
     };
     

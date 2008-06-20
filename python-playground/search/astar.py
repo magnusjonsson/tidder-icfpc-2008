@@ -28,19 +28,17 @@ def astar(problem):
         qitem = heapq.heappop(heap)
         state = qitem.state
         depth = qitem.depth
-        path = qitem.path
-        if problem.is_goal(state):
-            yield path
-        del hcache[state]  # save some memory from now on
-        for (cost,move) in problem.possible_moves(state):
-            next_state = problem.make_move(state,move)
-            addState(next_state, depth+cost, (move, path))
+        if depth == best_depth[state]:
+            path = qitem.path
+            if problem.is_goal(state):
+                yield path
+            for (cost,move) in problem.possible_moves(state):
+                next_state = problem.make_move(state,move)
+                addState(next_state, depth+cost, (move, path))
 
 def path_to_list(path):
     list = []
     while path:
         head,path = path
         list.append(head)
-    return list
-
-    
+    return list  
