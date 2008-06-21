@@ -1,84 +1,44 @@
 #lang scheme
 
-(require srfi/43) ; vector-swap!
+(provide make prio? empty? length insert! extract-min!)
 
-(provide make
-         prio?
-         empty?
-         length
-         insert!
-         extract-min!
-         )
-
-(define-struct prio
-  (<-fn 
-   count
-   vector
-   )
-  #:mutable)
-
-(define min-vector-length 16)
+(define-struct prio (<-fn count vector) #:mutable)
 
 (define (make <-fn)
-  (make-prio <-fn 0 (make-vector min-vector-length)
-             ))
-
-(define (allocated p)
-  (vector-length (prio-vector p)))
+  (make-prio <-fn 0 (make-vector 16)))
 
 (define (full? p)
   (= (prio-count p)
-     (allocated p)))
+     (vector-length (prio-vector p))))
 
 (define (grow! p)
   (let* ((old-vector (prio-vector p))
          (old-length (vector-length old-vector))
-         (new-length (max min-vector-length (* 2 old-length)))
+         (new-length (max 16 (* 2 old-length)))
          (new-vector (make-vector new-length)))
     (vector-copy! new-vector 0 old-vector)
     (set-prio-vector! p new-vector)))
 
-(define (last-index p)
-  (- (prio-count p) 1))
-
-(define (parent-index index)
-  (quotient (- index 1) 2))
-
-(define (first-child-index index)
-  (+ (* index 2) 1))
-
-(define (second-child-index index)
-  (+ (* index 2) 2))
-
-(define (prio-ref p index)
-  (vector-ref (prio-vector p) index))
-
-(define (prio-set! p index value)
-  (vector-set! (prio-vector p) index value))
-
-(define (inc-count! p)
-  (set-prio-count! p (+ 1 (prio-count p))))
-
-(define (push! p item)
+(define (insert! p item)
   (when (full? p)
     (grow! p))
-  (prio-set! p (prio-count p) item)
-  (inc-count! p))
-
-(define (bubble-up! p i)
-  (let ((j (parent-index i))
-        (v (prio-vector p)))
-    (when ((prio-<-fn p) (vector-ref v i)
-                         (vector-ref v j))
-      (vector-swap! v i j)
-      (bubble-up! p j))))
-
-(define (insert! p item)
-  (push! p item)
-  (bubble-up! p (last-index p)))
+  (let* ((v     (prio-vector p))
+         (count (prio-count p))
+         (vi    item)
+         (<-fn  (prio-<-fn p)))
+    (set-prio-count! p (add1 count))
+    (let bubble-up! ((i count))
+      (if (zero? i)
+          (vector-set! v i vi)
+          (let* ((j  (quotient (sub1 i) 2))
+                 (vj (vector-ref v j)))
+            (if (<-fn vj vi)
+                (vector-set! v i vi)
+                (begin (vector-set! v i vj)
+                       (bubble-up! j))))))))
 
 (define (empty? p)
-  (= (prio-count p) 0))
+  (zero? (prio-count p)))
 
 (define length prio-count)
 
@@ -86,27 +46,27 @@
   (let* ((v            (prio-vector p))
          (<-fn         (prio-<-fn p))
          (first-value  (vector-ref v 0))
-         (last-index   (- (prio-count p) 1))
+         (last-index   (sub1 (prio-count p)))
          (last-value   (vector-ref v last-index)))
+
     (define (bubble-down! i vi)
-      (let ((j (first-child-index i)))
+      (let ((j (add1 (* 2 i))))
         (if (>= j last-index)
             (vector-set! v i vi)
-            (let* ((vj (vector-ref v j))
-                   (k (add1 j)))
+            (let ((vj (vector-ref v j))
+                  (k (add1 j)))
               (if (>= k last-index)
                   (bubble-down-aux! i vi j vj)
-                  (let ((vk (if (>= k last-index) vj (vector-ref v k))))
+                  (let ((vk (vector-ref v k)))
                     (if (<-fn vk vj)
                         (bubble-down-aux! i vi k vk)
                         (bubble-down-aux! i vi j vj))))))))
     
     (define (bubble-down-aux! i vi j vj)
-      (if (<-fn vj vi)
-          (begin
-            (vector-set! v i vj)
-            (bubble-down! j vi))
-          (vector-set! v i vi)))
+      (if (<-fn vi vj)
+          (vector-set! v i vi)
+          (begin (vector-set! v i vj)
+                 (bubble-down! j vi))))
 
     (set-prio-count! p last-index)
     (vector-set! v last-index #f)
@@ -132,6 +92,8 @@
   (printf "~s~n" (extract-min! a))
   (printf "~s~n" (extract-min! a))
   (printf "~s~n" (extract-min! a))
+  (printf "~s~n" (extract-min! a))
+  (printf "~s~n" (empty? a))
   (printf "~s~n" (extract-min! a))
   (printf "~s~n" (empty? a))
   )

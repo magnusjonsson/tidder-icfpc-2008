@@ -14,11 +14,10 @@ FFI            Good     Good   Good      ?        ?      ?      ?
 Magnus implemented A* in various langauges and benchmarked them:
 
              python mzscheme    c++   java  haskell    sml  ocaml
-time(ms)       8745     2640    386   3536       *     762   1374
+time(ms)       8745     1241    386   3536       *     762   1374
 
-wc loc           76      248    203    190      109    174    113
-wc words        194      722    500    537      492    699    465
-wc bytes       2167     6827   4814   6057     3993   5947   3507
+wc loc           76      174    203    190      109    174    113
+wc words        194      580    500    537      492    699    465
+wc bytes       2167     5448   4814   6057     3993   5947   3507
 
 * Haskell ran out of memory, couldn't figure out why.
-

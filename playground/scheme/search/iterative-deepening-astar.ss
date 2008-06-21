@@ -4,86 +4,62 @@
 
 (provide ida*)
 
-(define *heuristic-fn*      (make-parameter #f))
-(define *heuristic-hash*    (make-parameter #f))
-(define *depth-hash*        (make-parameter #f))
-(define *goal-reached?-fn*  (make-parameter #f))
-(define *possible-moves-fn* (make-parameter #f))
-(define *make-move-fn*      (make-parameter #f))
-(define *max-depth*         (make-parameter #f))
-(define *next-max-depth*    (make-parameter #f))
- 
-(define (heuristic state)
-  (hash-memo (*heuristic-hash*)
-             (*heuristic-fn*)
-             state))
+(define (ida* start
+              goal?
+              heuristic
+              generate-moves!
+              success!)
+  (let ((depth-hash     (make-hash))
+        (heuristic-hash (make-hash))
+        (max-depth      0)
+        (next-max-depth 0))
 
-(define (learn-heuristic! state distance)
-  (when (> distance (heuristic state))
-    (hash-set! (*heuristic-hash*)
-               state
-               distance)))
+    (define (heuristic* state)
+      (hash-memo heuristic-hash heuristic state))
+    
+    (define (learn-heuristic! state distance)
+      (when (> distance (heuristic* state))
+        (hash-set! heuristic-hash state distance)))
+    
+    ;; returns a lower bound on the depth of the goal
+    ;; side effect: when goal is found, success! is called with the path to the goal
+    (define (depth-first-search state depth path)
+      (let ((estimate (+ depth (heuristic* state))))
+        (cond
+          [(> estimate max-depth)
+           (when (or (not next-max-depth) (< estimate next-max-depth))
+             (set! next-max-depth estimate))
+           estimate]
 
-(define (maybe-next-max-depth! depth)
-  (when (or (not (*next-max-depth*))
-            (< depth (*next-max-depth*)))
-    (*next-max-depth* depth)))
+          [(goal? state)
+           (success! path)
+           depth]
+          
+          [(let ((best-depth (hash-ref depth-hash state #f)))
+             (and best-depth (> depth best-depth)))
+           estimate]
 
-(define move-cost car)
+          [#t
+           (hash-set! depth-hash state depth)
+           (let ((new-estimate #f))
+             (generate-moves! state
+                              (lambda (cost desc next-state)
+                                (let ((child-estimate
+                                       (depth-first-search next-state
+                                                           (+ depth cost)
+                                                           (cons desc path))))
+                                  (when (or (not new-estimate)
+                                            (< child-estimate new-estimate))
+                                    (set! new-estimate child-estimate)))))
+             (if (and new-estimate (> new-estimate estimate))
+                 (begin (learn-heuristic! state (- new-estimate depth))
+                        new-estimate)
+                 estimate))])))
 
-;; returns a lower bound on the depth of the goal
-;; side effect: when goal is found, on-success is called with the path to the goal
-(define (depth-first-rec state
-                         depth
-                         on-success)
-  (let ((min-goal-depth (+ depth (heuristic state))))
-    (cond
-      [(> min-goal-depth (*max-depth*))
-       (maybe-next-max-depth! min-goal-depth)
-       min-goal-depth]
-      [((*goal-reached?-fn*) state)
-       (on-success '())
-       depth]
-      [(> depth (hash-ref (*depth-hash*) state (+ depth 1)))
-       min-goal-depth]
-      [#t
-       (hash-set! (*depth-hash*) state depth)
-       (let ((min-goal-depth-2 #f))
-         (for-each (lambda (move)
-                     (let ((child-depth
-                            (depth-first-rec ((*make-move-fn*) state move)
-                                             (+ depth (move-cost move))
-                                             (lambda (success-path)
-                                               (on-success (cons move success-path))))))
-                       (when (or (not min-goal-depth-2)
-                                 (< child-depth min-goal-depth-2))
-                         (set! min-goal-depth-2 child-depth))))
-                   ((*possible-moves-fn*) state))
-         (if (and min-goal-depth-2
-                  (> min-goal-depth-2 min-goal-depth))
-             (begin
-               (learn-heuristic! state (- min-goal-depth-2 depth))
-               min-goal-depth-2)
-             min-goal-depth))])))
-
-(define (ida* init-state
-              goal-reached?-fn
-              heuristic-fn
-              possible-moves-fn
-              make-move-fn
-              on-success)
-  (parameterize ((*heuristic-fn*      heuristic-fn)
-                 (*heuristic-hash*    (make-hash))
-                 (*depth-hash*        (make-hash))
-                 (*goal-reached?-fn*  goal-reached?-fn)
-                 (*possible-moves-fn* possible-moves-fn)
-                 (*make-move-fn*      make-move-fn)
-                 (*max-depth*         0)
-                 (*next-max-depth*    0))
     (let loop ()
-      (when (*next-max-depth*)
-        (*max-depth* (*next-max-depth*))
-        (*next-max-depth* #f)
-        (printf "searching depth: ~a~n" (*max-depth*))
-        (depth-first-rec init-state 0 on-success)
+      (when next-max-depth
+        (set! max-depth next-max-depth)
+        (set! next-max-depth #f)
+        (printf "searching depth: ~a~n" max-depth)
+        (depth-first-search start 0 '())
         (loop)))))
