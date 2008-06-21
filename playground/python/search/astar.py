@@ -12,29 +12,23 @@ class _QueueItem:
 
 def astar(problem):
     best_depth = {}
-    hcache = {}
     heap = []
     def addState(state,depth,path):
         previous_depth = best_depth.get(state)
         if previous_depth == None or depth < previous_depth:
             best_depth[state] = depth
-            h = hcache.get(state)
-            if h == None:
-                h = problem.heuristic(state)
-                hcache[state] = h
+            h = problem.heuristic(state)
             heapq.heappush(heap, _QueueItem(depth+h, depth, state, path))
     addState(problem.initial_state(), 0, ())
     while heap:
         qitem = heapq.heappop(heap)
         state = qitem.state
         depth = qitem.depth
-        if depth == best_depth[state]:
-            path = qitem.path
-            if problem.is_goal(state):
-                yield path
-            for (cost,move) in problem.possible_moves(state):
-                next_state = problem.make_move(state,move)
-                addState(next_state, depth+cost, (move, path))
+        path = qitem.path
+        if problem.is_goal(state):
+            yield path
+        for (cost,move,next_state) in problem.generate_moves(state):
+            addState(next_state, depth+cost, (move, path))
 
 def path_to_list(path):
     list = []

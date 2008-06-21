@@ -10,19 +10,12 @@ class TestProblem:
         (x,y) = state
         (tx,ty) = self.target 
         return (abs(x-tx)+4)/5 + (abs(y-ty)+2)/3
-    def possible_moves(self,state):
-        return ((1,"up"),(1,"down"),(1,"left"),(1,"right"))
-    def make_move(self,state,move):
+    def generate_moves(self,state):
         (x,y) = state
-        if move == "left":
-            return (x-3,y)
-        if move == "right":
-            return (x+5,y)
-        if move == "up":
-            return (x,y+3)
-        if move == "down":
-            return (x,y-2)
-        raise "Invalid move"
+        yield (1,"up",(x,y+3))
+        yield (1,"down",(x,y-2))
+        yield (1,"left",(x-3,y))
+        yield (1,"right",(x+5,y))
 
 def test():
     sol = astar.path_to_list(astar.astar(TestProblem()).next())
