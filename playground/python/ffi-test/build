@@ -7,4 +7,9 @@ else
     SHARED=-shared
 fi
 
-gcc $SHARED -o native.so native.c
+if [[ `uname -m` =~ 'x86_64' ]]
+then
+    OPT=-fPIC
+fi
+
+gcc $OPT $SHARED -o native.so native.c
