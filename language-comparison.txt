@@ -16,8 +16,8 @@ Magnus implemented A* in various langauges and benchmarked them:
              python mzscheme    c++   java  haskell    sml  ocaml
 time(ms)       8709     1241    386   3536       *     395   1374
 
-wc loc           63      174    203    190      109    170    113
-wc words        151      580    500    537      492    681    465
-wc bytes       1737     5448   4814   6057     3993   6038   3507
+wc loc           63      174    203    190      109    250    113
+wc words        151      580    500    537      492    919    465
+wc bytes       1737     5448   4814   6057     3993   8713   3507
 
 * Haskell ran out of memory, couldn't figure out why.

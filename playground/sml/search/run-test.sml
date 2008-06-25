@@ -3,4 +3,4 @@ fun loop i =
     else (AStarTest.test (253,252);
           loop (i-1))
 
-val _ = loop 1
+val _ = loop 100

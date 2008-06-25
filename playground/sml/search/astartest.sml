@@ -33,12 +33,17 @@ structure AStarTest = struct
       case Solver.nextSolution (Solver.begin goal) of
           NONE => NONE
         | SOME (solution,_) => SOME solution
-                               
+
   fun test goal =
       case Solver.nextSolution (Solver.begin goal) of
           NONE => raise Fail "No solution.\n"
         | SOME (solution, _) =>
-          (TextIO.print "Found solution of length ";
-           TextIO.print (Int.toString (length solution));
-           TextIO.print "\n")
+          TextIO.print
+              ("Found solution of length "^
+               Int.toString (length solution)^"\n"^
+               String.implode (List.map (fn Problem.L => #"l"
+                                          | Problem.R => #"r"
+                                          | Problem.U => #"u"
+                                          | Problem.D => #"d")
+                                        solution) ^ "\n")
 end

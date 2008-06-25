@@ -28,9 +28,8 @@ functor AStar (P : PROBLEM) = struct
         P.CostOrder.compare (a,c)
   end
   structure Frontier = ImperativePrioQueue(PrioOrder)
-  exception NotInDepthHash
 
-  fun maybeAddState (problem,frontier,depthHash,state,depth,path) =
+  fun maybeAddState (self as (problem,frontier,depthHash),state,depth,path) =
       let
           val isBestSoFar =
               case HashTable.find depthHash state of
@@ -51,46 +50,46 @@ functor AStar (P : PROBLEM) = struct
               end
       end
 
+  exception NotInDepthHash
   fun begin problem =
       let
           val depthHash = HashTable.mkTable (P.stateHash, P.stateEqual) (4096, NotInDepthHash)
           val frontier = Frontier.make ()
+          val self = (problem,frontier,depthHash)
       in
-          maybeAddState (problem, frontier, depthHash,
-                         P.initialState problem, P.CostMonoid.zero, []);
-          (problem,frontier,depthHash)
+          maybeAddState (self, P.initialState problem, P.CostMonoid.zero, []);
+          self
       end
 
-  fun expand (problem,frontier,depthHash,state,depth,path) =
+  fun expand (self as (problem,frontier,depthHash),state,depth,path) =
       let
           fun considerMove move =
               let
                   val newDepth = P.CostMonoid.+ (depth, P.moveCost (problem,move))
                   val newState = P.makeMove (problem,move,state)
               in
-                  maybeAddState (problem,frontier,depthHash,newState,newDepth,move::path)
+                  maybeAddState (self,newState,newDepth,move::path)
               end
           val moves = P.possibleMoves (problem, state)
       in
           List.app considerMove moves
       end
           
-  fun nextSolution (problem, frontier, depthHash) =
+  fun nextSolution (self as (problem, frontier, depthHash)) =
       if Frontier.null frontier then
           NONE
       else
-          case Frontier.extract frontier of
-              (_,state,depth,path) =>
-              case HashTable.find depthHash state of
-                  NONE => raise Fail "Impossible case"
-                | SOME bestDepth =>
-                  if P.CostOrder.compare (depth, bestDepth) = GREATER then
-                      nextSolution (problem, frontier, depthHash)
-                  else
-                      (expand (problem,frontier,depthHash,state,depth,path);
-                       if P.isGoal (problem,state) then
-                           SOME (path, (problem, frontier, depthHash))
-                       else
-                           nextSolution (problem, frontier, depthHash)
-                      )
+          let
+              val (_,state,depth,path) = Frontier.extract frontier
+              val bestDepth = HashTable.lookup depthHash state
+          in
+              if P.CostOrder.compare (depth, bestDepth) = GREATER then
+                  nextSolution (problem, frontier, depthHash)
+              else
+                  (expand (self,state,depth,path);
+                   if P.isGoal (problem,state) then
+                       SOME (path, self)
+                   else
+                       nextSolution self)
+          end
 end
