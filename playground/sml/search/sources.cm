@@ -1,7 +1,7 @@
 Group is
 $/basis.cm
 $/smlnj-lib.cm
-prioqueue.sml
-astarhash.sml
+iprioqueue.sml
+astar.sml
 astartest.sml
 

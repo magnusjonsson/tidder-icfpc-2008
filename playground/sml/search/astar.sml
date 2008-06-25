@@ -8,7 +8,9 @@ signature PROBLEM = sig
       val + : t * t -> t
       val zero : t
     end
+    structure CostOrder : ORD_KEY
     sharing type CostMonoid.t = cost
+    sharing type CostOrder.ord_key = cost
     val initialState : instance -> state
     val isGoal : instance * state -> bool
     val heuristic : instance * state -> cost
@@ -25,7 +27,7 @@ functor AStar (P : PROBLEM) = struct
     fun compare ((a,_,_,_),(c,_,_,_)) =
         P.CostOrder.compare (a,c)
   end
-  structure Frontier = PrioQueue(PrioOrder)
+  structure Frontier = ImperativePrioQueue(PrioOrder)
   exception NotInDepthHash
 
   fun maybeAddState (problem,frontier,depthHash,state,depth,path) =
@@ -36,7 +38,7 @@ functor AStar (P : PROBLEM) = struct
                 | SOME oldDepth => P.CostOrder.compare (depth,oldDepth) = LESS
       in
           if not isBestSoFar then
-              frontier
+              ()
           else
               let
                   val estimatedGoalDepth =
@@ -52,26 +54,25 @@ functor AStar (P : PROBLEM) = struct
   fun begin problem =
       let
           val depthHash = HashTable.mkTable (P.stateHash, P.stateEqual) (4096, NotInDepthHash)
-          val frontier =
-              maybeAddState (problem, Frontier.empty, depthHash,
-                             P.initialState problem, P.CostMonoid.zero, [])
+          val frontier = Frontier.make ()
       in
+          maybeAddState (problem, frontier, depthHash,
+                         P.initialState problem, P.CostMonoid.zero, []);
           (problem,frontier,depthHash)
-      end
-
-  fun considerMove (problem,depthHash,state,depth,path) (move,frontier) =
-      let
-          val newDepth = P.CostMonoid.+ (depth, P.moveCost (problem,move))
-          val newState = P.makeMove (problem,move,state)
-      in
-          maybeAddState (problem,frontier,depthHash,newState,newDepth,move::path)
       end
 
   fun expand (problem,frontier,depthHash,state,depth,path) =
       let
+          fun considerMove move =
+              let
+                  val newDepth = P.CostMonoid.+ (depth, P.moveCost (problem,move))
+                  val newState = P.makeMove (problem,move,state)
+              in
+                  maybeAddState (problem,frontier,depthHash,newState,newDepth,move::path)
+              end
           val moves = P.possibleMoves (problem, state)
       in
-          foldl (considerMove (problem,depthHash,state,depth,path)) frontier moves
+          List.app considerMove moves
       end
           
   fun nextSolution (problem, frontier, depthHash) =
@@ -79,20 +80,17 @@ functor AStar (P : PROBLEM) = struct
           NONE
       else
           case Frontier.extract frontier of
-              ((_,state,depth,path), frontier) =>
+              (_,state,depth,path) =>
               case HashTable.find depthHash state of
                   NONE => raise Fail "Impossible case"
                 | SOME bestDepth =>
                   if P.CostOrder.compare (depth, bestDepth) = GREATER then
                       nextSolution (problem, frontier, depthHash)
                   else
-                      let
-                          val frontier =
-                              expand (problem,frontier,depthHash,state,depth,path)
-                      in
-                          if P.isGoal (problem,state) then
-                              SOME (path, (problem, frontier, depthHash))
-                          else
-                              nextSolution (problem, frontier, depthHash)
-                      end
+                      (expand (problem,frontier,depthHash,state,depth,path);
+                       if P.isGoal (problem,state) then
+                           SOME (path, (problem, frontier, depthHash))
+                       else
+                           nextSolution (problem, frontier, depthHash)
+                      )
 end
