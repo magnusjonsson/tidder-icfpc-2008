@@ -9,8 +9,7 @@
 ;Some parameters you can tinker with
 (let ((num-start 100) (num-pop 20) (num-child 10) (num-iter 10000))
   (time
-   (call/cc
-    (lambda (k)
+   (let/ec k
       (genetic-optimize
        ;Initial candidates: num-start random points in the range 0..10
        (for/list ((c (in-range num-start)))
@@ -39,4 +38,4 @@
            (set! i (add1 i))
            (when (> i num-iter)
              ;break
-             (k (vector-ref winners 0))))))))))
+             (k (vector-ref winners 0)))))))))

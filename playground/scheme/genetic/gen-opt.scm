@@ -28,8 +28,7 @@
 ;Take the n lowest (as per <=>) items of l
 ;Sorts no more than is needed
 (define (take-sort <=> l n)
-  (call/cc
-   (lambda (k)
+  (let/ec k
      (define i 0)
      (define a (make-vector n))
      (define (add x)
@@ -50,4 +49,4 @@
             (lambda (left center right)
               (quicksort left)
               (for-each add center)
-              (quicksort right)))))))))
+              (quicksort right))))))))
