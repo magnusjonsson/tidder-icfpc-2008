@@ -1,7 +1,7 @@
 #lang scheme
 
 (provide memoize)
-(require (prefix-in cache- "fifo-cache.scm")
+(require (prefix-in cache- "random-cache.scm")
          (only-in rnrs/base-6 assert))
 
 (define (memoize size f)
@@ -10,7 +10,7 @@
       (cache-ref cache x
                  (lambda ()
                    (let ((result (apply f x)))
-                     (cache-set! cache x result)
+                     (cache-insert! cache x result)
                      result))))))
 
 (define (test)
@@ -20,7 +20,7 @@
              )))
 
 (define fib
-  (memoize 50
+  (memoize 100000
            (lambda (x)
              (if (< x 2)
                  1
