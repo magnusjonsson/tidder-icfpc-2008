@@ -32,7 +32,7 @@
            estimate]
 
           [(goal? state)
-           (success! path)
+           (success! path depth)
            depth]
           
           [(let ((best-depth (hash-ref depth-hash state #f)))

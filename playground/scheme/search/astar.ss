@@ -17,18 +17,16 @@
           (prio:insert! frontier (make-item (+ depth (heuristic state))
                                             depth state path)))))
     (define (try-next!)
-      (let* ((item  (prio:extract-min! frontier))
-             (depth (item-depth item))
-             (state (item-state item))
-             (path  (item-path item)))
-;        (when (= depth (hash-ref depth-hash state))
-        (when (goal? state)
-          (success! path))
-        (generate-moves! state
-                         (lambda (cost desc next-state)
-                           (add! (+ depth cost)
-                                 next-state
-                                 (cons desc path))))))
+      (let* ((first-item  (prio:extract-min! frontier)))
+        (match first-item
+          ((struct item (_ depth state path))
+           (if (goal? state)
+               (success! path depth)
+               (generate-moves! state
+                                (lambda (cost desc next-state)
+                                  (add! (+ depth cost)
+                                        next-state
+                                        (cons desc path)))))))))
     (add! 0 start '())
     (let loop ()
       (unless (prio:empty? frontier)
