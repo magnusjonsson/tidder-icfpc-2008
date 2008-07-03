@@ -1,6 +1,6 @@
 #lang scheme
 
-(require (prefix-in prio: "priority-queue.ss"))
+(require (prefix-in prio: "../queue/priority-queue.ss"))
 (provide a*)
 
 (define-struct item (prio depth state path))
