@@ -24,10 +24,6 @@ class _Empty(object):
     def __init__(self):
         pass
     
-    black_height = property(lambda self: 0)
-    is_red = property(lambda self: False)
-    is_black = property(lambda self: True)
-    
     def __nonzero__(self):
         return False
     
