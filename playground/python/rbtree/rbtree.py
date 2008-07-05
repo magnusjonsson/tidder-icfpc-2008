@@ -83,7 +83,10 @@ class _TreeNode(object):
     
     def with_(self, key, value):
         r = self.with_red(key, value)
-        return _BlackNode(r.__key, r.__value, r.__left, r.__right)
+        if r.is_red:
+            return _BlackNode(r.__key, r.__value, r.__left, r.__right)
+        else:
+            return r
 
 class _BlackNode(_TreeNode):
     def __init__(self, key, value, left = empty, right = empty):
@@ -103,7 +106,8 @@ class _BlackNode(_TreeNode):
         else:   
             return _BlackNode(key, value, self.left, self.right)
         
-        # rebalance if either child is red and has a red child
+        # rebalance if a child is red and has itself a red child
+        
         if left.is_red:
             if left.left.is_red:
                 left2 = _BlackNode(left.left.key, left.left.value, left.left.left, left.left.right)
