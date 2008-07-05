@@ -24,6 +24,9 @@ class _Empty(object):
     def __init__(self):
         pass
     
+    is_red = property(lambda self: False)
+    is_black = property(lambda self: True)
+    
     def __nonzero__(self):
         return False
     
@@ -100,29 +103,27 @@ class _BlackNode(_TreeNode):
         else:   
             return _BlackNode(key, value, self.left, self.right)
         
-        # rebalance if necessary
-#        if left.is_red and right.is_red:
-#            left2 = _BlackNode(left.key, left.value, left.left, left.right)
-#            right2 = _BlackNode(right.key, right.value, right.left, right.right)
-#            return _RedNode(self.key, self.value, left2, right2)            
-        if left.is_red and left.left.is_red:
-            left2 = _BlackNode(left.left.key, left.left.value, left.left.left, left.left.right)
-            right2 = _BlackNode(self.key, self.value, left.right, right)
-            return _RedNode(left.key, left.value, left2, right2)
-        elif left.is_red and left.right.is_red:
-            left2 = _BlackNode(left.key, left.value, left.left, left.left.left)
-            right2 = _BlackNode(self.key, self.value, left.right.right, right)
-            return _RedNode(left.right.key, left.right.value, left2, right2)
-        elif right.is_red and right.right.is_red:
-            left2 = _BlackNode(self.key, self.value, left, right.left)
-            right2 = _BlackNode(right.right.key, right.right.value, right.right.left, right.right.right)
-            return _RedNode(right.key, right.value, left2, right2)
-        elif right.is_red and right.left.is_red:
-            left2 = _BlackNode(self.key, self.value, left, right.left.left)
-            right2 = _BlackNode(right.key, right.value, right.left.right, right.right)
-            return _RedNode(right.left.key, right.left.value, left2, right2)
-        else:
-            return _BlackNode(self.key, self.value, left, right)
+        # rebalance if either child is red and has a red child
+        if left.is_red:
+            if left.left.is_red:
+                left2 = _BlackNode(left.left.key, left.left.value, left.left.left, left.left.right)
+                right2 = _BlackNode(self.key, self.value, left.right, right)
+                return _RedNode(left.key, left.value, left2, right2)
+            elif left.right.is_red:
+                left2 = _BlackNode(left.key, left.value, left.left, left.left.left)
+                right2 = _BlackNode(self.key, self.value, left.right.right, right)
+                return _RedNode(left.right.key, left.right.value, left2, right2)
+        elif right.is_red:
+            if right.right.is_red:
+                left2 = _BlackNode(self.key, self.value, left, right.left)
+                right2 = _BlackNode(right.right.key, right.right.value, right.right.left, right.right.right)
+                return _RedNode(right.key, right.value, left2, right2)
+            elif right.left.is_red:
+                left2 = _BlackNode(self.key, self.value, left, right.left.left)
+                right2 = _BlackNode(right.key, right.value, right.left.right, right.right)
+                return _RedNode(right.left.key, right.left.value, left2, right2)
+        
+        return _BlackNode(self.key, self.value, left, right)
 
 class _RedNode(_TreeNode):
     def __init__(self, key, value, left = empty, right = empty):
