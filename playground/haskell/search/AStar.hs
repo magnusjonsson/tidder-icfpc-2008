@@ -7,7 +7,9 @@ deleteFindMinOne::Ord k => Map.Map k [v] -> ((k,v), Map.Map k [v])
 deleteFindMinOne map =
     case deleteFindMin map of
       ((key, [item]),map) -> ((key,item),map)
-      ((key, item:items),_) -> ((key,item), updateMin (const (Just items)) map)
+      ((key, item:items),_) ->
+          case updateMin (const (Just items)) map of
+            map -> ((key,item), map)
 
 data Item state move cost = Item !state !cost ![move]
 
