@@ -1,0 +1,36 @@
+Fibonacci
+
+                        collision**  fifo    fifo-bump    fifo-mark   random
+cache size    10          *           3         4           5          3
+cache size   100          2           3         4           6          3
+cache size  1000          2           3         5           5          3
+cache size 10000          2           3         5           6          4
+
+This test isn't very relevant because the error margins are fairly big
+compared to the results and missing the cache once won't hurt much.
+
+* Didn't end within reasonable time
+** Distribution of hashes isn't really random with integers
+
+--------------------------------------------------------------------------------
+Genetic optimization ((num-start 100) (num-pop 20) (num-child 10) (num-iter 10))
+
+Artificially slowed by sleeping a millisecond in the evaluation function,
+this is done to emulate a more complex evaluation function.
+
+                        collision    fifo    fifo-bump    fifo-mark   random
+cache size     10        33046      32349     27551        30997      34836
+cache size    100        17825      17963     14041        16724      18638
+cache size   1000         8916       7148      7124         7062       7689
+cache size  10000         7384       7295      7187         7118       7367
+cache size 100000         7270       7361      7180         7267       7309
+
+Conclusions:
+When the cached function takes some serious time, being accurate in what you
+cache becomes way more important than the cache implementation speed.
+When cache space is huge, all cache algorithms perform about equal.
+
+Winner: fifo-bump, the most accurate
+Second: fifo-mark, sacrifices a bit of accuracy for implementation speed
+Loser:  fifo, performs not better than the random caches
+
