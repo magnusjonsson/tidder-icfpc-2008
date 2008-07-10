@@ -7,7 +7,7 @@
 ;The function has some local minima to confuse the algorithm, see graph.jpg
 
 ;Some parameters you can tinker with
-(let ((num-start 100) (num-pop 20) (num-child 10) (num-iter 500))
+(let ((num-start 100) (num-pop 20) (num-child 10) (num-iter 10))
   (time
    (let/ec k
      (genetic-optimize
@@ -17,9 +17,10 @@
       ;Size of the population that survives
       num-pop
       ;Evaluation function. higher = better
-      (memoize (* num-pop (add1 num-child))
+      (memoize 10
                (lambda (x)
                  ;Find the minimum
+                 (sleep .001)
                  (-
                   ;of y = cos(pi * x) / x
                   (/ (cos (* pi x)) x))))

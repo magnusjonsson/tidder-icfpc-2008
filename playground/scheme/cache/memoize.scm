@@ -20,7 +20,7 @@
              )))
 
 (define fib
-  (memoize 100000
+  (memoize 10
            (lambda (x)
              (if (< x 2)
                  1
