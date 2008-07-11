@@ -6,8 +6,12 @@ import sys
 
 class Connection(object):
     def __init__(self, host, port):
+        self.host = host
+        self.port = port
+    
+    def open(self):
         self.socket = socket.socket()
-        self.socket.connect((host, port))
+        self.socket.connect((self.host, self.port))
         self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         
         self.read_queue = Queue(0)

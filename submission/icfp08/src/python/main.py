@@ -11,6 +11,7 @@ if __name__ == "__main__":
     port = 17676
     
     connection = Connection(host, port)
+    connection.open()
     connection.write("a;")
     
     time.sleep(20)
