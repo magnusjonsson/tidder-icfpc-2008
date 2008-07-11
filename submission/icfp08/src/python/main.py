@@ -7,11 +7,11 @@ import os
 import network
 
 if __name__ == "__main__":
-    host = "google.com"
-    port = 80
+    host = "127.0.0.1"
+    port = 17676
     
     connection = network.Connection(host, port)
-    connection.write("GET / HTTP/1.0\nHost: www.google.com\n\n")
+    connection.write("a;")
     
-    time.sleep(4)
+    time.sleep(20)
     connection.close()
