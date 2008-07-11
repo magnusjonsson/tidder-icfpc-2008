@@ -1,7 +1,7 @@
 You can use the "planet" tool to download and unpack PLaneT packages.
 
 For example, if you want to download the evector package:
-1. Check how to require it on planet.plt.net
+1. Check how to require it on planet.plt-scheme.org
    In this example: (require (planet "evector.scm" ("soegaard" "evector.plt" 1 1)))
 2. Fetch the .plt file, with the information from the last part of the require:
    /..../plt-4.0/bin/planet fetch soegaard evector.plt 1 1
