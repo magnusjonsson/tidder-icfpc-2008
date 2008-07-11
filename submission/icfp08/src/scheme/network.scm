@@ -23,7 +23,9 @@
   (char-ready? in))
 
 (define (get-char)
-  (read-char in))
+  (let ((c (read-char in)))
+    (when (eof-object? c) (exit))
+    c))
 
 (define (send-string string)
   (write-string string out))
