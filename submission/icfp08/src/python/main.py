@@ -1,14 +1,17 @@
 #! /usr/bin/env python
 
-import socket
+import time
+import sys
+import os
+
+import network
 
 if __name__ == "__main__":
-     host = "google.com"
-     port = 80
-     
-     s = socket.socket()
-     s.connect((host, port))
-     
-     # do work
-     
-     s.close()
+    host = "127.0.0.1"
+    port = 17676
+    
+    connection = network.Connection(host, port)
+    connection.write("a;")
+    
+    time.sleep(20)
+    connection.close()
