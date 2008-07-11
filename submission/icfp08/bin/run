@@ -1,5 +1,7 @@
-# an executable file run, inside bin, which runs your client. It may be an executable, or it may be a shell script that manages running your client. It must take command-line arguments (which will be specified in the contest task description). That is, the judges must be able to execute your client with
+# an executable file run, inside bin, which runs your client. It may be an executable, or it may be a shell script that manages running your client.
+# It must take command-line arguments (which will be specified in the contest task description). That is, the judges must be able to execute your client with
 #
-#    bin/run [arguments redacted] 
+#    bin/run [arguments redacted]
 #
-# from inside the icfp08 directory. 
+# from inside the icfp08 directory.
+

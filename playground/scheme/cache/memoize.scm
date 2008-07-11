@@ -1,7 +1,7 @@
 #lang scheme
 
 (provide memoize)
-(require (prefix-in cache- "random-cache.scm")
+(require (prefix-in cache- "fifo-bump-cache.scm")
          (only-in rnrs/base-6 assert))
 
 (define (memoize size f)

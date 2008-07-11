@@ -12,8 +12,7 @@
                  (and (<= depth 0)
                       (heuristic-score state))
                  (let-values (((score move next-state) (expand state depth lower-bound upper-bound)))
-                   score)))
-  ))
+                   score)))))
 
   (define cache
     (let ((cache-table (make-hash)))
