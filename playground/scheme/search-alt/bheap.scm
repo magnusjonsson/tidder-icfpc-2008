@@ -4,7 +4,7 @@
 (provide make insert! remove! empty?)
 
 ;;Extensible vectors combine fast random access with automatic memory management
-(require (planet "evector.scm" ("soegaard" "evector.plt" 1 1)))
+(require "../../../libraries/scheme/evector/evector.scm")
 
 ;;Supporting functions and data structures
 (define-struct node (priority value) #:transparent)

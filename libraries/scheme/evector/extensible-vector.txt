@@ -1,0 +1,167 @@
+EXTENSIBLE VECTORS  -- Jens Axel Søgaard
+
+(require (planet "evector.scm" (soegaard "evector.plt")))
+
+
+ABSTRACT
+
+Extensible vectors are a low level resizeable data structure
+resembling normal Scheme vectors.
+
+RATIONALE
+
+The purpose of extensible vectors is to provide a low level
+vector-like data structure, that unlike vectors can be resized in
+constant amortized time.
+
+SPECIFICATION
+
+Extensible vectors are heterogenous structures whose elements are
+indexed by integers.  The average time to access a randomly chosen
+element is typically the same as for a vector.
+
+The length of an extensible vector is the number of elements that it
+contains. This number is a non-negative integer. The valid indexes of
+an extensible vector are the exact non-negative integers less than the
+length of the extensible vector. The first element in an extensible
+vector is indexed by zero, and the last element is indexed by one less
+than the length of the extensible vector.
+
+The length of an extensible vector is set by the procedure
+set-evector-length!. Increasing the length of an extensible vector
+will initialize the new elements with the fill value of the extensible
+vector. The fill value is a value associated with the extensible
+vector.
+
+An extensible vector may be automatically expandable. If the
+extensible vector is automatically expandable, an attempt to store an
+element in the extensible vector at an index k larger than or equal to
+the length of the extensible vector will automatically increase the
+length of the extensible vector to k+1 before storing the element;
+otherwise an error is signaled.
+
+The space occupied by an extensible vector is affected by the history
+of the extensible vector. The space occupied is typically less than
+twice the space of a vector with a length equal to the maximum of the
+lengths the extensible vector has had.
+
+Example:
+
+  (require (planet "evector.scm" (soegaard "evector.plt")))
+  > (define ev (evector 1 2 3))
+  > (evector-pop! ev)
+  3
+  > (evector-length ev) 
+  2
+  > (evector->list ev)
+  (1 2)
+  > (evector-set! ev 7 7)
+  > (evector->vector ev)
+  #8(1 2 3 #f #f #f #f 7)
+  > (evector-push! ev 8)
+  8
+  > (evector->list ev)
+  (1 2 3 #f #f #f #f 7 8)
+
+Further examples are found in the test suite in test-evector.scm.
+
+
+PROCEDURES
+
+> make-evector
+procedure: (make-evector k)
+procedure: (make-evector k fill)
+procedure: (make-evector k fill automatic-expansion?)
+
+  Returns a newly allocated extensible vector of k elements, whose
+  elements are initialized to the fill value. If a second argument is
+  given, fill is used as the fill value; otherwise the fill value is
+  unspecified. If a third argument is given, it determines whether the
+  extensible vector is automatically expandable. Otherwise the
+  extensible vector will be automatically expandable.
+
+
+> evector
+procedure:  (evector obj ...) 
+
+  Returns a newly allocated automatically expandabale extensible
+  vector whose elements contain the given arguments. The fill value is
+  unspecified. 
+
+
+> evector-ref  
+procedure:  (evector-ref evector k) 
+
+  k must be a valid index of evector. Evector-ref returns the contents
+  of element k of evector.
+
+
+> evector-set!
+procedure:  (evector-set! evector k obj) 
+
+  Evector-set! stores obj in element k of evector. If k is greater
+  than the length of evector, then evector is expanded if it is
+  automatically expandable; otherwise an error is signaled. The value
+  returned by evector-set! is unspecified.
+
+
+> evector-length
+procedure:  (evector-length evector) 
+
+  Returns the number of elements in evector as an exact integer.
+
+
+>set-evector-length!
+procedure:  (set-evector-length! evector k)
+
+  Sets the length of the extensible vector evector to k. If k is
+  greater than the previous size of evector, the new elements with
+  index equal to or greater to the old size will be initialised to the
+  fill value of evector.
+
+
+> evector?
+procedure: (evector obj)
+
+  Returns #t if obj is an evector, otherwise returns #f.
+
+
+> evector-fill
+> set-evector-fill!
+procedure:  (evector-fill evector)
+procedure:  (set-evector-fill! evector fill)
+
+  Evector-fill returns the fill value of evector. Set-evector-fill!
+  changes the fill value to fill.
+
+
+> evector->list
+> list->evector
+procedure:  (evector->list evector) 
+procedure:  (list->evector list) 
+
+  Evector->list returns a newly allocated list of the objects
+  contained in the elements of evector. List->evector returns a newly
+  created extensible vector initialized to the elements of the list
+  list.
+
+
+> evector->vector
+> vector->evector
+procdure:   (evector->vector evector)
+procdure:   (vector->evector vector)
+
+  Evector->vector returns a newly allocated vector containing the
+  elements of evector. Vector->evector returns a newly allocated
+  extensible vector initialized to the elements of the vector vector. 
+
+
+> evector-fill!
+procedure:  (evector-fill! evector fill) 
+procedure:  (evector-fill! evector fill start) 
+procedure:  (evector-fill! evector fill start end) 
+
+  Stores fill in the elements of the evector with indexes from start
+  inclusive to end exclusive. The default value for start is 0, and
+  the default value for the end is the length of the extensible
+  vector.
