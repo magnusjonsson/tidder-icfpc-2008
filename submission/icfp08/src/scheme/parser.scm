@@ -32,6 +32,7 @@
   (let ((tokens (filter (lambda (x) (not (zero? (string-length x))))
                         (pregexp-split "[ \n;]" msg))))
     (define (n) (string->number (pop! tokens)))
+    (define (t) (/ (n) 1000)) ; time in ms -> seconds
     (define (accel) (case (string-ref (car tokens) 0)
                       ((#\a) 1)
                       ((#\-) 0)
@@ -52,24 +53,39 @@
       (if (not (null? tokens))
           (cons (x) (many x))
           '()))
-    (define (many-seen) (many seen))
-    (define (mk constructor . parsers)
-      (apply constructor (map (lambda (f) (f)) parsers)))
+
     (match (pop! tokens)
-      ("I" (mk msg:make-init n n n n n n n n))
-      ("T" (mk msg:make-telemetry n accel turn vehicle many-seen))
-      ("B" (msg:make-failure n (lambda () 'crash)))
-      ("C" (msg:make-failure n (lambda () 'crater)))
-      ("K" (msg:make-failure n (lambda () 'killed)))
-      ("S" (msg:make-success n))
-      ("E" (msg:make-end n n)))))
+      ("I" (msg:make-init (n) (n) (t) (n) (n) (n) (n) (n)))
+      ("T" (msg:make-telemetry (t) (accel) (turn) (vehicle) (many seen)))
+      ("B" (msg:make-crash (t))
+      ("C" (msg:make-failure (t) 'crater))
+      ("K" (msg:make-failure (t) 'killed))
+      ("S" (msg:make-success (t)))
+      ("E" (msg:make-end (t) (n))))))
+
 
 (define (test-parse)
-  (define t (parse "T 3450 aL -234.040 811.100 47.5 8.450 b -220.000 750.000 12.000 m -240.000 812.000 90.0 9.100 ;"))
-  (printf "~a~n" t)
-  (printf "~a~n" (msg:telemetry-vehicle t))
-  (assert (equal? t
-                  (msg:make-telemetry 3450 1 -2
-                                      (msg:make-vehicle -234.040 811.100 47.5 8.450)
-                                      (list (msg:make-object 'boulder -220.000 750.000 12.000)
-                                            (msg:make-vehicle -240.000 812.000 90.0 9.100))))))
+  (define (-> input output)
+    (let ((actual-output (parse input)))
+      (if (equal? (parse input) output)
+          #t
+          (begin
+            (printf "test-parse: (parse ~s) should give ~s, but actually gives ~s"
+                    input output actual-output)))))
+  
+  (->
+   "T 3450 aL -234.040 811.100 47.5 8.450 b -220.000 750.000 12.000 m -240.000 812.000 90.0 9.100 ;"
+   (msg:make-telemetry 3450/1000 1 -2
+                       (msg:make-vehicle -234.040 811.100 47.5 8.450)
+                       (list (msg:make-object 'boulder -220.000 750.000 12.000)
+                             (msg:make-vehicle -240.000 812.000 90.0 9.100))))
+  (->
+   "I 50.000 40.000 100 2.000 3.000 5.000 60.0 90.0"
+   (msg:make-init 50.0 40.0 100/1000 2.0 3.0 5.0 60.0 90.0))
+  
+  (-> "B 50 ;" (msg:make-crash 50/1000))
+  (-> "C 50 ;" (msg:make-failure 50/1000 'crater))
+  (-> "K 50 ;" (msg:make-failure 50/1000 'killed))
+  (-> "S 50 ;" (msg:make-success 50/1000))
+  (-> "E 50 10000 ;" (msg:make-end 50/1000 10000))
+  )
