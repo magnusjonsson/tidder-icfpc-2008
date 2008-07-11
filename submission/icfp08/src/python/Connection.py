@@ -56,7 +56,9 @@ class ReaderThread(Thread):
                 self.connection.read_queue.put(c)
                 
                 # debug
-                sys.stdout.write(c)
+                if c >= 'A' and c <= 'Z':
+                    sys.stdout.write(c)
+                    sys.stdout.flush()
 
 class WriterThread(Thread):
     def __init__(self, connection):
