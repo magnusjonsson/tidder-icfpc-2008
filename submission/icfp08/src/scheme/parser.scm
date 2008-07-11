@@ -20,7 +20,7 @@
       (and (net:char-available?)
            (begin
              (set! chars (cons (net:get-char) chars))
-             (message-finished?)))))
+             (message-available?)))))
 
 (define (get-message)
   (and (message-finished?)
