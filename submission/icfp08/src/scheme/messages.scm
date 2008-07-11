@@ -1,6 +1,6 @@
 #lang scheme
 
-(provide init telemetry vehicle object success failure)
+(provide (all-defined-out))
 
 (define-struct init (dx dy ; meters
                      time-limit ; seconds
@@ -13,7 +13,7 @@
                           acceleration-control ; -1; braking, 0: rolling, 1: accelerating
                           turn-control         ; -2: hard left, -1 left, 0 straight, 1 right, 2 hard right
                           vehicle ; vehicle
-                          objects ; (list (or object vehicle))
+                          seen ; (list (or object vehicle))
                           ))
 
 (define-struct vehicle (x y ; meters
@@ -30,3 +30,5 @@
 
 (define-struct failure (reason ; (or 'crash 'killed 'disconnected)
                     ))
+
+(define-struct end ())
