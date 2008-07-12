@@ -69,7 +69,7 @@
              (set! last-blocking-obj b)
              (let-values (((tx ty ta td)
                            (tangent x y
-                                    (object-x b) (object-y b) (effective-radius b)
+                                    (object-x b) (object-y b) (+ 0.1 (effective-radius b))
                                     1)))
                (set!-values (target-x target-y) (values tx ty)))
              (avoidance-loop))))
