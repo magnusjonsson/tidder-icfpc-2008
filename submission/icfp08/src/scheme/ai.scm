@@ -14,7 +14,7 @@
 (provide handle-message)
 
 (define (effective-radius o)
-  (+ 5 (match (object-kind o)
+  (+ 2.5 (match (object-kind o)
     ('boulder (+ (object-radius o) 1/2))
     ('crater  (object-radius o)))))
 
