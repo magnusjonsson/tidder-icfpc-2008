@@ -14,9 +14,36 @@
 (define (normalize-deg deg)
   (- deg (* 360 (round (/ deg 360)))))
 
+(define remembered (make-hash))
+
+(define (remember-objects objects)
+  (for-each remember-object objects))
+
+(define (remember-object o)
+  (cond
+    ((object? o) (hash-set! remembered o #t))))
+
+
+(define (print-remembered)
+  (printf "remembered objects:")
+  (hash-for-each remembered
+                 (lambda (key value)
+                   (printf " ~a" key)))
+  (printf "~n"))
+
+(define (reset-remembered)
+  (set! remembered (make-hash)))
+
+(define (reset-state)
+  (reset-remembered))
+
 (define (handle-message m)
   (cond
+    ((end? m)
+     (reset-state))
     ((telemetry? m)
+     (remember-objects (telemetry-seen m))
+     (print-remembered)
      (let* ((self (telemetry-vehicle m))
             (x (vehicle-x self))
             (y (vehicle-y self))
