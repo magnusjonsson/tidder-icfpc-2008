@@ -13,10 +13,17 @@
 
 (provide handle-message)
 
-(define (effective-radius o)
-  (+ 2.5 (match (object-kind o)
-    ('boulder (+ (object-radius o) 1/2))
-    ('crater  (object-radius o)))))
+(define safety-margin 2.5)
+
+(define (safe-radius o)
+  (+ safety-margin
+     (object-radius o)))
+
+(define (preprocess-object o)
+  (match o
+    ((struct object ('boulder x y r))
+     ('boulder (make-object 'boulder x y (+ (r 1/2)))))
+    (_ o)))
 
 (define (handle-message m)
   ;(printf "~a~n" m)
@@ -50,7 +57,7 @@
          (let/ec return
            (hash-for-each remembered
                           (lambda (obj junk)
-                            (let ((r (effective-radius obj)))
+                            (let ((r (safe-radius obj)))
                               ; if there's an intersection that happens before
                               ; target-distance, (return obj)
                               (unless (equal? obj last-blocking-obj)
@@ -69,7 +76,7 @@
              (set! last-blocking-obj b)
              (let-values (((tx ty ta td)
                            (tangent x y
-                                    (object-x b) (object-y b) (effective-radius b)
+                                    (object-x b) (object-y b) (safe-radius b)
                                     1)))
                (set!-values (target-x target-y) (values tx ty)))
              (avoidance-loop))))
