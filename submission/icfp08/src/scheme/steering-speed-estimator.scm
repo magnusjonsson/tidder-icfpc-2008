@@ -4,7 +4,7 @@
 ;
 ; it ignores the effect of reaching the target turning rate.
 
-(provide init learn
+(provide learn
          max-acceleration
          curr-quadratic
          curr-acceleration
@@ -22,13 +22,6 @@
 (define cs 0) ; estimated current speed
 (define ca 0) ; estimated current acceleration
 (define ma 0) ; estimated max turning acceleration (actually, the fastest turning acceleration seen so far)
-
-(define mt 0)
-(define mth 0)
-
-(define (init max-turn max-turn-hard)
-  (set! mt max-turn)
-  (set! mth max-turn-hard))
 
 ; last three observed (time,direction) pairs
 (define-values (t0 t1 t2) (values #f #f #f))
