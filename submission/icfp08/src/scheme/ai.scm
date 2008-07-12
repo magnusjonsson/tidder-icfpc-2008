@@ -6,8 +6,14 @@
 (require "angles.scm")
 (require (prefix-in control- "control.scm"))
 (require "path.scm")
+(require "misc-syntax.ss")
 
 (provide handle-message)
+
+(define (effective-radius o)
+  (match (object-kind o)
+    ('boulder (+ (object-radius o) 5/2))
+    ('crater  (object-radius o))))
 
 (define (handle-message m)
   ;(printf "~a~n" m)
@@ -32,7 +38,29 @@
             (y (vehicle-y self))
             (dir (vehicle-dir self))
             (speed (vehicle-speed self))
+            (target-distance (sqrt (sqr x) + (sqr y)))
             (target-dir (atan-deg (- y) (- x))))
+
+       (define (target-blocked?)
+         ; return the object that blocks it or #f
+         (let/ec return
+           (hash-for-each remembered
+                          (lambda (obj junk)
+                            (let ((r (effective-radius obj)))
+                              ; if there's an intersection that happens before
+                              ; target-distance, (return obj)
+                              #f
+                              )))
+           ; no object is blocking
+           #f))
+       
+       (let loop ()
+         (let ((b (target-blocked?)))
+           (when b
+             ; adjust target to be the left tangent point
+             ; of b
+             (loop))))
+       
        (let* ((dir-target-diff (deg- target-dir dir))
               (steer (* 2 dir-target-diff))
               (accel (cond
