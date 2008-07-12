@@ -35,7 +35,7 @@
             (y (vehicle-y self))
             (dir (vehicle-dir self))
             (speed (vehicle-speed self))
-            (target-dir (rad->deg (atan (- 0 y) (- 0 x)))))
+            (target-dir (atan-deg x y)))
        (sse-learn t dir)
        (let* ((dir-max-accel (sse-max-acceleration))
               (mht (control-max-hard-turn))
