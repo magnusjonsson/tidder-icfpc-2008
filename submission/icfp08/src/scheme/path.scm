@@ -26,7 +26,7 @@
 (define planned-path (list))
 
 (define (update-path obstacle)
-  ; TODO: check if obstacle blocks our path, and if yes, recompute shortest
-  ; path
-  (printf "got obstacle ~n")
+  ; TODO: check if obstacle blocks our path
+    
+  ; for now: simply drive around the obstacle left
   (set! planned-path (cons (make-path-node obstacle -1) planned-path)))
