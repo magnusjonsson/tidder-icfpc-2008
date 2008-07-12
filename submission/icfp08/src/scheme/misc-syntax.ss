@@ -44,13 +44,13 @@
 
 (define-syntax inc!
   (syntax-rules ()
-    ((_ place) (set! (place (add1 place))))
-    ((_ place increment) (set! (place (+ place increment))))))
+    ((_ place) (set! place (add1 place)))
+    ((_ place increment) (set! place (+ place increment)))))
 
 (define-syntax dec!
   (syntax-rules ()
-    ((_ place) (set! (place (sub1 place))))
-    ((_ place decrement) (set! (place (- place decrement))))))
+    ((_ place) (set! place (sub1 place)))
+    ((_ place decrement) (set! place (- place decrement)))))
 
 
 (define-syntax dotimes
