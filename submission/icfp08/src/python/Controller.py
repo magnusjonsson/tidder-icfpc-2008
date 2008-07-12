@@ -48,29 +48,29 @@ class Controller(object):
             self.buffer += c
 
     def _parse_acc(self, c):
-	if c in ACC_STATES: 
-	    return c
-	else:
+        if c in ACC_STATES: 
+            return c
+        else:
 	    raise "invalid acceleration state " + c
 	
     def _parse_dir(self, c):
-	if c in DIR_STATES:
-	    return c
-	else:
-	    raise "invalid direction state " + c
+        if c in DIR_STATES:
+            return c
+        else:
+            raise "invalid direction state " + c
 
     def _parse_objects(self, s):
-	l = []
-	i = 0
-	while i < len(s):	    
-	    kind = s[i]
-	    if kind == MARTIAN:
-		l.append(objects.Martian( *map(float, s[i + 1:i + 5])))
-		i += 5
-	    elif kind in (BOULDER, CRATER, HOME):
-		l.append(objects.Object(kind, float(s[i + 1]), float(s[i + 2]), float(s[i + 3])))
-		i += 4
-	return l
+        l = []
+        i = 0
+        while i < len(s):	    
+            kind = s[i]
+            if kind == MARTIAN:
+                l.append(objects.Martian( *map(float, s[i + 1:i + 5])))
+                i += 5
+            elif kind in (BOULDER, CRATER, HOME):
+                l.append(objects.Object(kind, float(s[i + 1]), float(s[i + 2]), float(s[i + 3])))
+                i += 4
+        return l
 
     def parse(self, message):
         if not self.brain:
@@ -90,7 +90,7 @@ class Controller(object):
                     float(parts[8]) # max_hard_turn
                 )
         elif parts[0] == "T":
-            # TODO: parse objects
+            
             
             self.brain.send_telemetry(
                     float(parts[1]), # time_stamp
