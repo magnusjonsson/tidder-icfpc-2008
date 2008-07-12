@@ -6,6 +6,7 @@
 (require "angles.scm")
 (require (prefix-in sse- "steering-speed-estimator.scm"))
 (require (prefix-in control- "control.scm"))
+(require "path.scm")
 
 (provide handle-message)
 
