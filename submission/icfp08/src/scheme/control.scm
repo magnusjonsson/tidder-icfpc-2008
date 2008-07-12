@@ -1,6 +1,6 @@
 #lang scheme
 
-(provide init set-state-deg/sec clear)
+(provide init set-state-deg/sec clear max-hard-turn)
 
 (require "network.scm")
 (require "misc-syntax.ss")
@@ -15,17 +15,18 @@
 (define mt 0) ; max turn
 (define mth 0) ; max hard turn
 
+(define (max-hard-turn) mth)
+
 (define (init max-turn max-turn-hard)
   (set! mt max-turn)
   (set! mth max-turn-hard))
 
 (define (set-state as ss)
-  (printf "~a ~a~n" as ss)
   (let ((accel-adjustment "")
         (steer-adjustment ""))
-    (when (not (= as accel-state))
-      (set! accel-adjustment (match as (-1 "b") (0 "") (1 "a")))
-      (set! accel-state as))
+    (cond
+      ((< as accel-state) (set! accel-adjustment "b") (dec! accel-state))
+      ((> as accel-state) (set! accel-adjustment "a") (inc! accel-state)))
     (cond
       ((< ss steer-state) (set! steer-adjustment "r") (dec! steer-state))
       ((> ss steer-state) (set! steer-adjustment "l") (inc! steer-state)))
@@ -37,7 +38,6 @@
       (set-state as ss))))
 
 (define (set-state-deg/sec as deg/sec)
-  (printf "~a ~a~n" as deg/sec)
   (set-state as (deg/sec->steer-state deg/sec)))
 
 (define (deg/sec->steer-state rate)
