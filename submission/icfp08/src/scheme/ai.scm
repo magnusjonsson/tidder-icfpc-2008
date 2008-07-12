@@ -40,15 +40,15 @@
             (speed (vehicle-speed self))
             (target-dir (rad->deg (atan (- 0 y) (- 0 x)))))
        (sse-learn t dir)
-       (let* ((steer-speed (sse-estimate))
-              (dir-diff (deg- target-dir dir))
-              (steer (if (< 0 dir-diff)
+       (let* ((dir-max-accel (sse-max-acceleration))
+              (dir-target-diff (deg- target-dir dir))
+              (steer (if (< 0 dir-target-diff)
                          1
                          -1))
               (accel (cond
                        ; not sure if this is the best way to compensate for steering speed...
-                       ((< (* steer-speed (abs dir-diff))  50000) 1)
-                       ((< (* steer-speed (abs dir-diff)) 100000) 0)
+                       ((< (* dir-max-accel (abs dir-target-diff))  50000) 1)
+                       ((< (* dir-max-accel (abs dir-target-diff)) 100000) 0)
                        (else -1))))
-         (printf "sse: ~a~n" steer-speed)
+         (printf "sse: ~a~n" dir-max-accel)
          (send-steer-accel steer accel))))))

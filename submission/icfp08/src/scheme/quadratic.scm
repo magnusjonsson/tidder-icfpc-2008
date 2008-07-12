@@ -1,6 +1,6 @@
 #lang scheme
 
-(provide fit acceleration)
+(provide fit value-at speed-at acceleration)
 
 (require srfi/43) ; vector-swap!
 (require (only-in rnrs/base-6 assert))
@@ -77,10 +77,19 @@
     (vector (/ (matrix-ref m 0 3) (matrix-ref m 0 0))
             (/ (matrix-ref m 1 3) (matrix-ref m 1 1))
             (/ (matrix-ref m 2 3) (matrix-ref m 2 2)))))
-  
+
 (define (acceleration q)
   ; differentiate twice to get acceleration
   (* 2 (vector-ref q 2)))
+
+(define (speed-at q t)
+  (+ (* 2 t (vector-ref q 2))
+     (vector-ref q 1)))
+
+(define (value-at q t)
+  (+ (* t t (vector-ref q 2))
+     (* t (vector-ref q 1))
+     (vector-ref q 0)))
 
 
 (define (test)
