@@ -12,21 +12,18 @@
 
 (define (message-finished?)
   (and (not (empty? chars))
-       (or (equal? (car chars) #\;)
-           (equal? (car chars) 'eof))))
+       (equal? (car chars) #\;)))
 
 (define (message-available?)
   (or (message-finished?)
       (and (net:char-available?)
            (begin
-             (set! chars (cons (net:get-char) chars))
+             (push! chars (net:get-char))
              (message-available?)))))
 
 (define (get-message)
   (and (message-finished?)
-       (if (equal? (car chars) 'eof)
-           'eof
-           (parse (list->string (reverse (begin0 chars (set! chars '()))))))))
+          (parse (list->string (reverse (begin0 chars (set! chars '())))))))
 
 (define (parse msg)
   (let ((tokens (filter (lambda (x) (not (zero? (string-length x))))
@@ -53,7 +50,7 @@
       (if (not (null? tokens))
           (cons (x) (many x))
           '()))
-
+    
     (match (pop! tokens)
       ("I" (msg:make-init (n) (n) (t) (n) (n) (n) (n) (n)))
       ("T" (msg:make-telemetry (t) (accel) (turn) (vehicle) (many seen)))
@@ -62,7 +59,6 @@
       ("K" (msg:make-failure (t) 'killed))
       ("S" (msg:make-success (t)))
       ("E" (msg:make-end (t) (n))))))
-
 
 (define (test-parse)
   (define (-> input output)
