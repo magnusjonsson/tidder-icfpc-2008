@@ -6,6 +6,37 @@ class Controller(object):
         self.connection = connection
         self.buffer = ""
         self.brain = None
+        self.reset()
+    
+    def reset(self):
+        self.acc = 0
+        self.dir = 0
+    
+    def set_acc(self, acc):
+        self.set_acc_dir(acc, self.dir)
+    
+    def set_dir(self, dir):
+        self.set_acc_dir(self.acc, dir)
+    
+    def set_acc_dir(self, acc, dir):
+        msg = ""
+        
+        acc = min(1, max(-1, acc))    
+        if acc > self.acc:
+            msg += "a;" * (acc - self.acc)
+        elif acc < self.acc:
+            msg += "b;" * (self.acc - acc)
+        self.acc = acc
+        
+        dir = min(2, max(-2, dir))    
+        if dir > self.dir:
+            msg += "l;" * (dir - self.dir)
+        elif dir < self.dir:
+            msg += "r;" * (self.dir - dir)
+        self.dir = dir
+        
+        if msg:
+            self.connection.send(msg)
     
     def send_input(self, c):
         """Called by the Connection to send incoming data."""
@@ -14,27 +45,7 @@ class Controller(object):
             self.buffer = ""
         else:
             self.buffer += c
-    
-    def send_command(self, acceleration, direction):
-        c = ""
         
-        if acceleration == -1:
-            c += "b"
-        elif acceleration == 1:
-            c += "a"
-        elif acceleration != 0:
-            raise "invalid acceleration " + acceleration
-        
-        if direction == -1:
-            c += "l"
-        elif direction == 1:
-            c += "r"
-        elif direction != 0:
-            raise "invalid direction " + direction
-        
-        if c != "":
-            self.connection.send(c + ";")
-    
     def parse(self, message):
         if not self.brain:
             return
@@ -65,6 +76,9 @@ class Controller(object):
                     float(parts[6]), # vehicle_speed
                     [] # objects
                 )
+        elif parts[0] == "E":
+            self.reset()
+            self.brain.send_end(float(parts[1]), float(parts[2]))
         else:
             # TODO: parse the other message types
             pass
