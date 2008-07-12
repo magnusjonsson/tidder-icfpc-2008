@@ -15,4 +15,4 @@
 (define (unwrap-deg reference deg)
   (+ reference (deg- deg reference)))
 
-(define (atan-deg y x) (rad->deg (atan (- 0 y) (- 0 x))))
+(define (atan-deg y x) (rad->deg (atan y x)))
