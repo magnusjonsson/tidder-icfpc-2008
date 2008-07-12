@@ -5,7 +5,12 @@
 
 (provide remember-objects remember-object
          print-remembered init-remembered
-         collides?)
+         collides? set-update-path!)
+
+; hack to break circular dependency;
+; not yet sure how to structure this properly
+(define update-path '())
+(define (set-update-path! p) (set! update-path p))
 
 (define raster-size 10)
 
@@ -31,7 +36,10 @@
              (unless (grid-ref x-i y-i)
                (grid-set! x-i y-i (make-hash)))
              ;Insert into hash
-             (hash-set! (grid-ref x-i y-i) o #t))))))
+             (let ((cell (grid-ref x-i y-i)))
+               (cond ((not (hash-ref cell o #f))
+                      (hash-set! cell o #t)
+                      (update-path o)))))))))
 
 (define (print-remembered)
   (printf "remembered objects:~n")
