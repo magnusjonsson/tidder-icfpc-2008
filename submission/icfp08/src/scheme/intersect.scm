@@ -1,6 +1,7 @@
 #lang scheme
 
 (provide line-intersects-circle?)
+(require (only-in rnrs/base-6 assert))
 
 (define (line-intersects-circle? line-x0 line-y0 line-x1 line-y1 circle-x circle-y r)
   (when (> line-x0 line-x1)
@@ -9,7 +10,7 @@
   
   (and (>= (+ circle-x r) line-x0)
        (<= (- circle-x r) line-x1)
-
+       
        (let* ((a (/ (- line-y0 line-y1) (- line-x0 line-x1)))
               (b (- line-y0 (* line-x0 a)))
               (c (sqrt (+ 1 (sqr a))))
@@ -20,3 +21,11 @@
                            (+ 1 (sqr a)))))
                 (or (<= line-x0 (- lh rh) line-x1)
                     (<= line-x1 (+ lh rh) line-x1)))))))
+
+(define (test)
+  (assert (line-intersects-circle? 0 0 1 1 .5 .5 .5)) ;trivial
+  (assert (line-intersects-circle? 0 0 1 1 .5 .5 0))  ;even points can be intersected
+  (assert (line-intersects-circle? 0 0 1 1 1.5 1 .5)) ;even the slightest touch counts
+  (assert (line-intersects-circle? 0 0 1 0 .5 .5 .5)) ;testing without slope
+  (assert (line-intersects-circle? 1 1 0 0 .5 .5 .5)) ;reversed trivial
+  (assert (not (line-intersects-circle? 0 0 1 1 1.5 1.5 .5))))
