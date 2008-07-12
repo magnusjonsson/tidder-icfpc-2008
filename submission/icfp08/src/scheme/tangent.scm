@@ -14,6 +14,6 @@
          (alpha2 (* direction alpha))
          (tangent-angle (+ (atan dy dx) alpha2))
          (tangent-distance (sqrt (- (* d d) (* r r))))
-         (tangent-x (* (cos tangent-angle) tangent-distance))
-         (tangent-y (* (sin tangent-angle) tangent-distance)))
+         (tangent-x (+ (* (cos tangent-angle) tangent-distance) robot-x))
+         (tangent-y (+ (* (sin tangent-angle) tangent-distance) robot-y)))
     (values tangent-x tangent-y (rad->deg tangent-angle) tangent-distance)))
