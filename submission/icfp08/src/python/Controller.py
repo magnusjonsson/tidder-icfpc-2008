@@ -47,28 +47,15 @@ class Controller(object):
         else:
             self.buffer += c
 
-
     def _parse_acc(self, c):
-	if(c == "b"):
-	    return STATE_BREAK
-	elif(c == "-"):
-	    return STATE_ROLL
-	elif(c == "a"):
-	    return STATE_ACC
+	if c in ACC_STATES: 
+	    return c
 	else:
 	    raise "invalid acceleration state " + c
 	
     def _parse_dir(self, c):
-	if(c == "L"):
-	    return STATE_HARDLEFT
-	elif(c == "l"):
-	    return STATE_LEFT
-	elif(c == "-"):
-	    return STATE_STRAIGHT
-	elif(c == "r"):
-	    return STATE_RIGHT
-	elif(c == "R"):
-	    return STATE_HARDRIGHT
+	if c in DIR_STATES:
+	    return c
 	else:
 	    raise "invalid direction state " + c
 
