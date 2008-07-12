@@ -10,9 +10,9 @@
                      )
   #:transparent)
 
-(define-struct telemetry (time-stamp ; seconds
+(define-struct telemetry (time ; seconds
                           acceleration-control ; -1; braking, 0: rolling, 1: accelerating
-                          turn-control         ; -2: hard left, -1 left, 0 straight, 1 right, 2 hard right
+                          turn-control         ; -2: hard right, -1 right, 0 straight, 1 left, 2 hard left
                           vehicle ; vehicle
                           seen ; (list (or object vehicle))
                           )
@@ -33,7 +33,7 @@
 (define-struct success (time)
   #:transparent)
 
-(define-struct crash (time)
+(define-struct bump (time)
   #:transparent)
 
 (define-struct failure (time
