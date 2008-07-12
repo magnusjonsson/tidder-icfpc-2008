@@ -2,9 +2,12 @@
 
 (require "parser.scm")
 (require "network.scm")
+(require "messages.scm")
+(require "ai.scm")
 
-(connect-server "localhost" 17676)
+(connect-server "192.168.0.4" 17676)
 (do () (#f)
-  (when (message-available?) (display (get-message)) (newline))
+  (when (message-available?)
+    (handle-message (get-message)))
   (sleep))
 (disconnect)
