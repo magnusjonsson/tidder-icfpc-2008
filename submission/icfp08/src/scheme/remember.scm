@@ -10,7 +10,9 @@
   (for-each remember-object objects))
 
 (define (remember-object o)
-  (when (and (msg:object? o) (not (hash-ref remembered o #f)))
+  (when (and (msg:object? o)
+             (not (eq? (msg:object-kind o) 'home-base))
+             (not (hash-ref remembered o #f)))
     (hash-set! remembered o #t)
     ;update path here
     ))
