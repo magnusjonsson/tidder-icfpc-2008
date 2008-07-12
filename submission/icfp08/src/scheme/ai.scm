@@ -74,9 +74,10 @@
                (set!-values (target-x target-y) (values tx ty)))
              (avoidance-loop))))
        (printf "~n")
+       (printf "target: ~a ~a~n" target-x target-y)
 
        (let* (;(target-distance (sqrt (+ (sqr x) (sqr y))))
-              (target-dir (atan-deg (- y) (- x)))
+              (target-dir (atan-deg (- target-y y) (- target-x x)))
               (dir-target-diff (deg- target-dir dir))
               (steer (* 2 dir-target-diff))
               (accel (cond
