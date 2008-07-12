@@ -7,6 +7,7 @@
 (require (prefix-in control- "control.scm"))
 (require "path.scm")
 (require "misc-syntax.ss")
+(require "intersect.scm")
 
 (provide handle-message)
 
@@ -38,8 +39,8 @@
             (y (vehicle-y self))
             (dir (vehicle-dir self))
             (speed (vehicle-speed self))
-            (target-distance (sqrt (sqr x) + (sqr y)))
-            (target-dir (atan-deg (- y) (- x))))
+            (target-x 0)
+            (target-y 0))
 
        (define (target-blocked?)
          ; return the object that blocks it or #f
@@ -47,10 +48,9 @@
            (hash-for-each remembered
                           (lambda (obj junk)
                             (let ((r (effective-radius obj)))
-                              ; if there's an intersection that happens before
-                              ; target-distance, (return obj)
-                              #f
-                              )))
+                              (when (line-intersects-circle? x y target-x target-y
+                                                             (object-x obj) (object-y obj) r)
+                                (return obj)))))
            ; no object is blocking
            #f))
        
@@ -61,7 +61,9 @@
              ; of b
              (loop))))
        
-       (let* ((dir-target-diff (deg- target-dir dir))
+       (let* (;(target-distance (sqrt (+ (sqr x) (sqr y))))
+              (target-dir (atan-deg (- y) (- x)))
+              (dir-target-diff (deg- target-dir dir))
               (steer (* 2 dir-target-diff))
               (accel (cond
                        ; pedal to the medal as long as we're not *completely* off course!
