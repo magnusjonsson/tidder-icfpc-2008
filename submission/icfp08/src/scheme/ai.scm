@@ -10,7 +10,7 @@
 (provide handle-message)
 
 (define (handle-message m)
-  (printf "~a~n" m)
+;  (printf "~a~n" m)
   (cond
     ((init? m)
      (control-init (init-max-turn m) (init-max-hard-turn m))
