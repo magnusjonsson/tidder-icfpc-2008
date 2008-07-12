@@ -1,0 +1,8 @@
+Team: tidder
+Token: f2268ff15c0d3f2d14e46448baa3f098f03a5629
+Filename: icfp08.tar.gz
+File size: 17014 bytes
+SHA1 hash: b26923c85a7c5e226e5966534508a319bcfac989
+
+Date: Sat, 12 Jul 2008 11:37:24 -0700
+This submission is eligible for the Lightning Round!
