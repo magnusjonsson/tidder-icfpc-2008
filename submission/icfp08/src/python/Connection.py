@@ -8,72 +8,40 @@ class Connection(object):
     def __init__(self, host, port):
         self.host = host
         self.port = port
+        self.controller = None
+        self.socket = None
     
-    def open(self):
-        self.socket = socket.socket()
-        self.socket.connect((self.host, self.port))
-        self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+    def process(self):
+        s = socket.socket()
+        s.connect((self.host, self.port))
+        s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        self.socket = s
         
-        self.read_queue = Queue(0)
-        self.write_queue = Queue(0)
-        
-        self.reader = ReaderThread(self)
-        self.writer = WriterThread(self)
-        self.reader.start()
-        self.writer.start()
+        read_loop(self)
     
-    def can_read(self):
-        """Returns whether a subsequent call to read will return without
-        blocking."""
-        return not self.read_queue.empty()
-    
-    def read(self):
-        """Reads a character and returns it; blocks until a new character is
-        available."""
-        return self.read_queue.get()
-    
-    def write(self, message):
-        """Schedules a message to be written. Always returns immediately; the
-        message will be sent in the background."""
-        self.write_queue.put(message)
+    def send(self, message):
+        sys.stdout.write(message[0:-1])
+        sys.stdout.flush
+        self.socket.send(message)
     
     def close(self):
         """Closes the underlying socket."""
         self.socket.close()
 
-class ReaderThread(Thread):
-    def __init__(self, connection):
-        Thread.__init__(self)
-        self.setDaemon(True) # ensure the thread doesn't zombify the app
-        self.connection = connection
-    
-    def run(self):
-        while True:
-            try:
-                data = self.connection.socket.recv(1)
-            except socket.error, e:
-                break
-            if data:
-                assert len(data) == 1
-                c = data[0]
-                
-                self.connection.read_queue.put(c)
-                
-                # debug
-                if c >= 'A' and c <= 'Z':
-                    sys.stdout.write(c)
-                    sys.stdout.flush()
-
-class WriterThread(Thread):
-    def __init__(self, connection):
-        Thread.__init__(self)
-        self.setDaemon(True) # ensure the thread doesn't zombify the app
-        self.connection = connection
-    
-    def run(self):
-        while True:
-            data = self.connection.write_queue.get()
-            try:
-                self.connection.socket.send(data)
-            except socket.error, e:
-                break
+def read_loop(connection):
+    while True:
+        try:
+            data = connection.socket.recv(1)
+        except socket.error, e:
+            break
+        if data:
+            assert len(data) == 1
+            c = data[0]
+            
+            if connection.controller:
+                connection.controller.send_input(c)
+            
+            # debug
+            if c >= 'A' and c <= 'Z':
+                sys.stdout.write(c)
+                sys.stdout.flush()

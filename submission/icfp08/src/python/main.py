@@ -5,14 +5,15 @@ import sys
 import os
 
 from Connection import Connection
+from Controller import Controller
+from Brain import Brain
 
 if __name__ == "__main__":
     host = "127.0.0.1"
     port = 17676
     
     connection = Connection(host, port)
-    connection.open()
-    connection.write("a;")
+    controller = Controller(connection)
+    brain = Brain(controller)
     
-    time.sleep(20)
-    connection.close()
+    connection.process() # loops until the end of the game
