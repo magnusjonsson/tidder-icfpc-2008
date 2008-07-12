@@ -38,6 +38,7 @@
             (target-dir (rad->deg (atan (- 0 y) (- 0 x)))))
        (sse-learn t dir)
        (let* ((dir-max-accel (sse-max-acceleration))
+              (mht (control-max-hard-turn))
               (dir-target-diff (deg- target-dir dir))
               (steer (* 4 dir-target-diff))
               (accel (cond
@@ -45,6 +46,6 @@
                        ((< (* dir-max-accel (abs dir-target-diff))  50000) 1)
                        ((< (* dir-max-accel (abs dir-target-diff)) 100000) 0)
                        (else -1))))
-         (printf "sse: ~a~n" dir-max-accel)
-         (printf "steer: ~a~n" steer)
+;         (printf "sse: ~a~n" dir-max-accel)
+;         (printf "steer: ~a~n" steer)
          (control-set-state-deg/sec accel steer))))))
