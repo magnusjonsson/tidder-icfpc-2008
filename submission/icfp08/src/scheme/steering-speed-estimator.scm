@@ -4,14 +4,24 @@
 ;
 ; it ignores the effect of reaching the target turning rate.
 
-(provide init learn estimate clear-history)
+(provide init learn
+         max-acceleration
+         curr-quadratic
+         curr-acceleration
+         curr-speed
+         curr-position
+         clear-history)
 
 (require (prefix-in quadratic- "quadratic.scm"))
 (require "misc-syntax.ss")
 (require "angles.scm")
 (require (only-in rnrs/base-6 assert))
 
-(define e 0) ; estimated max turning acceleration (actually, the fastest turning acceleration seen so far)
+(define q (vector 0 0 0)) ; current quadratic
+(define cp 0) ; estimated current position
+(define cs 0) ; estimated current speed
+(define ca 0) ; estimated current acceleration
+(define ma 0) ; estimated max turning acceleration (actually, the fastest turning acceleration seen so far)
 
 (define mt 0)
 (define mth 0)
@@ -56,16 +66,32 @@
   ; since angles can wrap around we use the "most plausible explanation"
   ; for which direction the turning went
   (when (have-three-points?)
-    (max! e (abs (quadratic-acceleration (quadratic-fit t0 (unwrap-deg d1 d0)
-                                                        t1 (unwrap-deg d1 d1)
-                                                        t2 (unwrap-deg d1 d2)))))))
+    (set! q (quadratic-fit t0 (unwrap-deg d1 d0)
+                           t1 (unwrap-deg d1 d1)
+                           t2 (unwrap-deg d1 d2)))
+    (set! cp (quadratic-value-at q t2))
+    (set! cs (quadratic-speed-at q t2))
+    (set! ca (quadratic-acceleration q))
+    (max! ma (abs ca))))
 
 (define (reset)
   (clear-history)
-  (set! e 0))
+  (set! ma 0))
 
-(define (estimate)
-  e)
+(define (max-acceleration)
+  ma)
+
+(define (curr-quadratic)
+  q)
+
+(define (curr-acceleration)
+  ca)
+
+(define (curr-speed)
+  cs)
+
+(define (curr-position)
+  cp)
 
 (define (test)
   (define (should= a b c
@@ -73,11 +99,11 @@
     (let ((e1 (begin 
                 (reset)
                 (learn 0 a) (learn 1 b) (learn 2 c)
-                (estimate)))
+                (max-acceleration)))
           (e2 (begin
                 (reset)
                 (learn 0 d) (learn 1 e) (learn 2 f)
-                (estimate))))
+                (max-acceleration))))
       (unless (= e1 e2)
         (printf "should be equal: ~a ~a~n" e1 e2)
         (printf "~a ~a ~a ~a ~a ~a~n" a b c d e f))))
