@@ -51,7 +51,7 @@ class Controller(object):
         if c in ACC_STATES: 
             return c
         else:
-	    raise "invalid acceleration state " + c
+            raise "invalid acceleration state " + c
 	
     def _parse_dir(self, c):
         if c in DIR_STATES:
