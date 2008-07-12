@@ -4,7 +4,7 @@
 
 (provide tangent)
 
-; returns (list x y angle distance) for the tangent point
+; returns (values x y angle distance) for the tangent point
 ; direction is -1 for right, 1 for left
 (define (tangent robot-x robot-y circle-x circle-y r direction)
   (let* ((dx (- circle-x robot-x))
@@ -16,4 +16,4 @@
          (tangent-distance (sqrt (- (* d d) (* r r))))
          (tangent-x (* (cos tangent-angle) tangent-distance))
          (tangent-y (* (sin tangent-angle) tangent-distance)))
-    (list tangent-x tangent-y (rad->deg tangent-angle) tangent-distance)))
+    (values tangent-x tangent-y (rad->deg tangent-angle) tangent-distance)))
