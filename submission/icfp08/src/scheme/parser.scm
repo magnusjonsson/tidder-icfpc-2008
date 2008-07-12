@@ -54,7 +54,7 @@
     (match (pop! tokens)
       ("I" (msg:make-init (n) (n) (t) (n) (n) (n) (n) (n)))
       ("T" (msg:make-telemetry (t) (accel) (turn) (vehicle) (many seen)))
-      ("B" (msg:make-crash (t)))
+      ("B" (msg:make-bump (t)))
       ("C" (msg:make-failure (t) 'crater))
       ("K" (msg:make-failure (t) 'killed))
       ("S" (msg:make-success (t)))
@@ -79,7 +79,7 @@
    "I 50.000 40.000 100 2.000 3.000 5.000 60.0 90.0 ;"
    (msg:make-init 50.0 40.0 100/1000 2.0 3.0 5.0 60.0 90.0))
   
-  (-> "B 50 ;" (msg:make-crash 50/1000))
+  (-> "B 50 ;" (msg:make-bump 50/1000))
   (-> "C 50 ;" (msg:make-failure 50/1000 'crater))
   (-> "K 50 ;" (msg:make-failure 50/1000 'killed))
   (-> "S 50 ;" (msg:make-success 50/1000))

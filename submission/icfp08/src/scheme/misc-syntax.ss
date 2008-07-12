@@ -1,6 +1,6 @@
 #lang mzscheme
 
-(provide push! pop! mergesort! while until min! max! inc! dec!)
+(provide push! pop! mergesort! while until min! max! inc! dec! dotimes)
 
 (define-syntax push!
   (syntax-rules ()
@@ -51,3 +51,10 @@
   (syntax-rules ()
     ((_ place) (set! (place (sub1 place))))
     ((_ place decrement) (set! (place (- place decrement))))))
+
+
+(define-syntax dotimes
+  (syntax-rules ()
+    ((_ (var num-times) body ...) (do ((var 0 (add1 var)))
+                                    ((>= var num-times))
+                                    body ...))))

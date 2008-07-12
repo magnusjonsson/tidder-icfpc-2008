@@ -2,55 +2,53 @@
 
 (require "messages.scm")
 (require "network.scm")
+(require "remember.scm")
+(require "angles.scm")
+(require (prefix-in sse- "steering-speed-estimator.scm"))
+
 (provide handle-message)
 
-(define (rad->deg rad)
-  (* 180 (/ rad pi)))
+(define (send-steer-accel s a)
+  (let ((str (format "~a~a;"
+                       (match a (-1 "b") (0 "") (1 "a"))
+                       (match s (-1 "r") (0 "") (1 "l")))))
+    (printf "~a~n" str)
+    (send-string str)))
 
-(define (deg- d1 d2)
-  (let ((diff (- d1 d2)))
-    (normalize-deg diff)))
-
-(define (normalize-deg deg)
-  (- deg (* 360 (round (/ deg 360)))))
-
-(define remembered (make-hash))
-
-(define (remember-objects objects)
-  (for-each remember-object objects))
-
-(define (remember-object o)
-  (cond
-    ((object? o) (hash-set! remembered o #t))))
-
-
-(define (print-remembered)
-  (printf "remembered objects:")
-  (hash-for-each remembered
-                 (lambda (key value)
-                   (printf " ~a" key)))
-  (printf "~n"))
-
-(define (reset-remembered)
-  (set! remembered (make-hash)))
-
-(define (reset-state)
-  (reset-remembered))
 
 (define (handle-message m)
+  (printf "~a~n" m)
   (cond
+    ((init? m)
+     (sse-clear-history))
     ((end? m)
-     (reset-state))
+     (sse-clear-history))
+    ((bump? m)
+     (sse-clear-history))
+    ((success? m)
+     (sse-clear-history))
+    ((failure? m)
+     (sse-clear-history))
     ((telemetry? m)
      (remember-objects (telemetry-seen m))
-     (print-remembered)
-     (let* ((self (telemetry-vehicle m))
+;     (print-remembered)
+     (let* ((t (telemetry-time m))
+            (self (telemetry-vehicle m))
             (x (vehicle-x self))
             (y (vehicle-y self))
             (dir (vehicle-dir self))
             (speed (vehicle-speed self))
-            (target-dir (rad->deg (atan (- 0 y) (- 0 x))))
-            (dir-diff (deg- dir target-dir)))
-       (send-string (if (< 0 dir-diff)
-                        "ar;"
-                        "al;"))))))
+            (target-dir (rad->deg (atan (- 0 y) (- 0 x)))))
+       (sse-learn t dir)
+       (let* ((steer-speed (sse-estimate))
+              (dir-diff (deg- target-dir dir))
+              (steer (if (< 0 dir-diff)
+                         1
+                         -1))
+              (accel (cond
+                       ; not sure if this is the best way to compensate for steering speed...
+                       ((< (* steer-speed (abs dir-diff))  50000) 1)
+                       ((< (* steer-speed (abs dir-diff)) 100000) 0)
+                       (else -1))))
+         (printf "sse: ~a~n" steer-speed)
+         (send-steer-accel steer accel))))))
