@@ -5,5 +5,5 @@
 #    bin/run [arguments redacted]
 #
 # from inside the icfp08 directory.
-mzscheme ../src/scheme/parser-test.scm $*
+mzscheme src/scheme/parser-test.scm $*
 
