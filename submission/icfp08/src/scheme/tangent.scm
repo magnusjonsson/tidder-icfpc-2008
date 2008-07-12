@@ -10,10 +10,11 @@
   (let* ((dx (- circle-x robot-x))
          (dy (- circle-y robot-y))
          (d (sqrt (+ (* dx dx) (* dy dy))))
-         (alpha (asin (/ r d))) ; TODO: if d < r, we're inside the circle and there is no tangent
+         (d2 (max r d)) ; use this for the fake tangent
+         (alpha (asin (/ r d2)))
          (alpha2 (* direction alpha))
          (tangent-angle (+ (atan dy dx) alpha2))
-         (tangent-distance (sqrt (- (* d d) (* r r))))
+         (tangent-distance (if (<= d r) 1 (sqrt (- (* d d) (* r r))))) ; fake distance 1 if too near
          (tangent-x (+ (* (cos tangent-angle) tangent-distance) robot-x))
          (tangent-y (+ (* (sin tangent-angle) tangent-distance) robot-y)))
     (values tangent-x tangent-y (rad->deg tangent-angle) tangent-distance)))
