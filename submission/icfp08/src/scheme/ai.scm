@@ -4,6 +4,7 @@
 (require "network.scm")
 (require "remember.scm")
 (require "angles.scm")
+(require "intersect.scm")
 (require (prefix-in control- "control.scm"))
 (require "path.scm")
 (require "misc-syntax.ss")
@@ -38,7 +39,7 @@
             (y (vehicle-y self))
             (dir (vehicle-dir self))
             (speed (vehicle-speed self))
-            (target-distance (sqrt (sqr x) + (sqr y)))
+            (target-distance (sqrt (+ (sqr x) (sqr y))))
             (target-dir (atan-deg (- y) (- x))))
 
        (define (target-blocked?)
@@ -47,6 +48,8 @@
            (hash-for-each remembered
                           (lambda (obj junk)
                             (let ((r (effective-radius obj)))
+                              (when (line-intersects-circle x y 0 0 (msg:object-x obj) (msg:object-y obj) r)
+                                (return obj)))))
                               ; if there's an intersection that happens before
                               ; target-distance, (return obj)
                               #f
