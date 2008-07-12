@@ -33,8 +33,11 @@
 (define-struct success (time)
   #:transparent)
 
+(define-struct crash (time)
+  #:transparent)
+
 (define-struct failure (time
-                        reason ; (or 'crash 'crater 'killed 'disconnected)
+                        reason ; (or 'crater 'killed 'disconnected)
                         )
   #:transparent)
 
