@@ -4,10 +4,18 @@
 (require "network.scm")
 (require "remember.scm")
 (require "angles.scm")
+(require "intersect.scm")
 (require (prefix-in control- "control.scm"))
 (require "path.scm")
+(require "misc-syntax.ss")
+(require "intersect.scm")
 
 (provide handle-message)
+
+(define (effective-radius o)
+  (match (object-kind o)
+    ('boulder (+ (object-radius o) 5/2))
+    ('crater  (object-radius o))))
 
 (define (handle-message m)
   ;(printf "~a~n" m)
@@ -32,8 +40,33 @@
             (y (vehicle-y self))
             (dir (vehicle-dir self))
             (speed (vehicle-speed self))
-            (target-dir (atan-deg (- y) (- x))))
-       (let* ((dir-target-diff (deg- target-dir dir))
+            (target-x 0)
+            (target-y 0))
+
+       (define (target-blocked?)
+         ; return the object that blocks it or #f
+         (let/ec return
+           (hash-for-each remembered
+                          (lambda (obj junk)
+                            (let ((r (effective-radius obj)))
+                              ; if there's an intersection that happens before
+                              ; target-distance, (return obj)
+                              (when (line-intersects-circle? x y target-x target-y
+                                                             (object-x obj) (object-y obj) r)
+                                (return obj)))))
+           ; no object is blocking
+           #f))
+       
+       (let loop ()
+         (let ((b (target-blocked?)))
+           (when b
+             ; adjust target to be the left tangent point
+             ; of b
+             (loop))))
+       
+       (let* (;(target-distance (sqrt (+ (sqr x) (sqr y))))
+              (target-dir (atan-deg (- y) (- x)))
+              (dir-target-diff (deg- target-dir dir))
               (steer (* 2 dir-target-diff))
               (accel (cond
                        ; pedal to the medal as long as we're not *completely* off course!
