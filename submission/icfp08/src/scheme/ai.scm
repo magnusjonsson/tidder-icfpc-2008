@@ -4,6 +4,7 @@
 (require "network.scm")
 (require "remember.scm")
 (require "angles.scm")
+(require "intersect.scm")
 (require (prefix-in control- "control.scm"))
 (require "path.scm")
 (require "misc-syntax.ss")
@@ -48,6 +49,8 @@
            (hash-for-each remembered
                           (lambda (obj junk)
                             (let ((r (effective-radius obj)))
+                              ; if there's an intersection that happens before
+                              ; target-distance, (return obj)
                               (when (line-intersects-circle? x y target-x target-y
                                                              (object-x obj) (object-y obj) r)
                                 (return obj)))))
