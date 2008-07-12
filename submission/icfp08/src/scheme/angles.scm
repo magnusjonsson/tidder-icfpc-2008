@@ -1,6 +1,6 @@
 #lang scheme
 
-(provide rad->deg deg- normalize-deg unwrap-deg)
+(provide rad->deg deg- normalize-deg unwrap-deg atan-deg)
 
 (define (rad->deg rad)
   (* 180 (/ rad pi)))
@@ -14,3 +14,5 @@
 
 (define (unwrap-deg reference deg)
   (+ reference (deg- deg reference)))
+
+(define (atan-deg x y) (rad->deg (atan (- 0 y) (- 0 x))))
