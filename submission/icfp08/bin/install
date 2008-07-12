@@ -1,2 +1,4 @@
+#!/bin/sh
 # an executable file install in the bin directory. If present, this file is run immediately after the submitted tarball is unbundled.
+exit
 
