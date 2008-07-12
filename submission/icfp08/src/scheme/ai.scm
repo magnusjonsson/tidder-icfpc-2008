@@ -15,7 +15,7 @@
   (cond
     ((init? m)
      (control-init (init-max-turn m) (init-max-hard-turn m))
-     (init-remembered (init-dx m) (init-dy m))
+     (clear-remembered)
      (sse-clear-history))
     ((end? m)
      (control-clear)
