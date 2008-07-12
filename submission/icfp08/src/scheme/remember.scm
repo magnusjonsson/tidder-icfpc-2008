@@ -5,7 +5,7 @@
 
 (provide remember-objects remember-object
          print-remembered init-remembered
-         collides)
+         collides?)
 
 (define raster-size 10)
 
@@ -44,8 +44,8 @@
         (printf "~n")))))
 
 (define (init-remembered my-dx my-dy)
-  (set! dx my-dx)
-  (set! dy my-dy)
+  (set! dx (inexact->exact my-dx))
+  (set! dy (inexact->exact my-dy))
   (set! x-num (quotient (+ dx raster-size -1) raster-size))
   (set! y-num (quotient (+ dy raster-size -1) raster-size))
   (set! grid (make-vector (* x-num y-num) #f)))
