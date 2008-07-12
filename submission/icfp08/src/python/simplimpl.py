@@ -80,10 +80,14 @@ def distance_to_obj(T,obj):
     x2,y2 = obj[object_x],obj[object_y] #works for martians too
     return sqrt( (x1-x2)**2 + (y1-y2)**2)
 
+def deg_to_rad(deg):
+    return (deg/180.0)*pi
+
+
 def rotate_point(x,y,a):
     #print "rot", (x,y,a)
-    ca = cos(a)
-    sa = sin(a)
+    ca = cos(deg_to_rad(a))
+    sa = sin(deg_to_rad(a))
     X = x*ca - y*sa
     Y = x*sa + y*ca
     return X,Y
