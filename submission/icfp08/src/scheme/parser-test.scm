@@ -5,7 +5,8 @@
 (require "messages.scm")
 (require "ai.scm")
 
-(connect-server "192.168.0.4" 17676)
+(connect-server (vector-ref (current-command-line-arguments) 0)
+                (string->number (vector-ref (current-command-line-arguments) 1)))
 (do () (#f)
   (when (message-available?)
     (handle-message (get-message)))
