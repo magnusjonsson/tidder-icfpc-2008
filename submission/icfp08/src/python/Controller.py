@@ -1,4 +1,5 @@
-import sys
+import sys, objects
+from constants import *
 
 class Controller(object):
     def __init__(self, connection):
@@ -45,7 +46,45 @@ class Controller(object):
             self.buffer = ""
         else:
             self.buffer += c
-        
+
+
+    def _parse_acc(self, c):
+	if(c == "b"):
+	    return STATE_BREAK
+	elif(c == "-"):
+	    return STATE_ROLL
+	elif(c == "a"):
+	    return STATE_ACC
+	else:
+	    raise "invalid acceleration state " + c
+	
+    def _parse_dir(self, c):
+	if(c == "L"):
+	    return STATE_HARDLEFT
+	elif(c == "l"):
+	    return STATE_LEFT
+	elif(c == "-"):
+	    return STATE_STRAIGHT
+	elif(c == "r"):
+	    return STATE_RIGHT
+	elif(c == "R"):
+	    return STATE_HARDRIGHT
+	else:
+	    raise "invalid direction state " + c
+
+    def _parse_objects(self, s):
+	l = []
+	i = 0
+	while i < len(s):	    
+	    kind = s[i]
+	    if kind == MARTIAN:
+		l.append(objects.Martian( *map(float, s[i + 1:i + 5])))
+		i += 5
+	    elif kind in (BOULDER, CRATER, HOME):
+		l.append(objects.Object(kind, float(s[i + 1]), float(s[i + 2]), float(s[i + 3])))
+		i += 4
+	return l
+
     def parse(self, message):
         if not self.brain:
             return
@@ -68,13 +107,13 @@ class Controller(object):
             
             self.brain.send_telemetry(
                     float(parts[1]), # time_stamp
-                    0, # TODO: vehicle_ctl_acc
-                    0, # TODO: vehicle_ctl_dir
+                    self._parse_acc(parts[2][0]), # vehicle_ctl_acc
+                    self._parse_dir(parts[2][1]), # vehicle_ctl_dir             
                     float(parts[3]), # vehicle_x
                     float(parts[4]), # vehicle_y
                     float(parts[5]), # vehicle_dir
                     float(parts[6]), # vehicle_speed
-                    [] # objects
+                    self._parse_objects(parts[7:])
                 )
         elif parts[0] == "E":
             self.reset()
