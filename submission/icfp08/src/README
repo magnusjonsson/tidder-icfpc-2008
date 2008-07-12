@@ -1,0 +1,22 @@
+Pardon the huge mess, we were still hacking until right before the deadline.
+
+Here's a small guide to what's what, but I wouldn't recommend any sane
+person to check out the source...
+
+parser-test.scm -- the main file, the strange name shows how hacky this is
+ai.scm          -- the part that does the thinking
+control.scm     -- abstracts moving
+network.scm     -- quick and dirty network stuff
+parser.scm      -- parses the messages we get
+intersect.scm   -- line/circle intersection mechanism
+tangent.scm     -- compute how we can drive just around the circles
+angles.scm      -- various stuff with radians and degrees
+
+The rest is stuff that may or may not be unused at the moment.
+Again, pardon the mess!
+
+Control flow: wait for message -> parse -> think -> respond ---\
+              ^----------------------------------------------- /
+
+Strategy: race to the target while barely avoiding problems.
+
