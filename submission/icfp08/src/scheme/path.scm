@@ -30,15 +30,16 @@
 
 (define (compute-target pos)
   ; pos = position of our rover
-  (safe-point pos (make-vec2 0 0)))
+  (safe-point pos (make-vec2 0 0) #f))
 
 ; Returns a point that we can safely travel to. For the full pathfinding,
 ; this needs to generate all suitable points.
-(define (safe-point pos target)
+(define (safe-point pos target ignore)
   (let ((real-target target)
         (visited (make-hash))
         (obstacle #f)
         (direction 0))
+    (when ignore (hash-set! visited ignore #t))
     (let avoidance-loop ()
       (printf ".")
       (let* ((ray (vec2- target pos))
@@ -62,6 +63,18 @@
 ; blocks the arc that we want to drive, considers finding a tangent point on
 ; that obstacle instead.
 (define (tangent-point pos target obstacle direction)
-  (let ((p (tangent pos (obj-pos obstacle) (safe-radius obstacle) direction)))
-    ; TODO
-    p))
+  (if (not obstacle) target
+      (let* ((p (tangent pos (obj-pos obstacle) (safe-radius obstacle) direction))
+             (q (tangent target (obj-pos obstacle) (safe-radius obstacle) (- direction)))
+             (arc (curve-angle p (obj-pos obstacle) q (- direction)))
+             (arc-max (first-curve-hit-angle p (obj-pos obstacle) (- direction))))
+        (printf "obstacle ~a~n" obstacle)
+        (cond
+          ((or (not arc-max) (<= arc arc-max)) p) ; "easy case"
+          (else
+           (printf "blocker ~a~n" (first-curve-hit-obj p (obj-pos obstacle) (- direction)))
+           (let* ((blocker (first-curve-hit-obj p (obj-pos obstacle) (- direction)))
+                  (t (circle-circle-tangent (obj-pos obstacle) (obj-radius obstacle) direction
+                                            (obj-pos blocker) (obj-radius blocker) direction))
+                  (target-on-blocker (cdr t)))
+             (safe-point pos target-on-blocker blocker)))))))
