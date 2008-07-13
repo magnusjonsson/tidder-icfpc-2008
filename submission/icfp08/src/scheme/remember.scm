@@ -20,9 +20,6 @@
 ; The Union-Find algorithm is used to merge groups.
 (define remembered (make-hash))
 
-(define (reset)
-  (set! remembered (make-hash)))
-
 (define (remember-objects objects)
   (for-each remember-object objects))
 
@@ -164,14 +161,14 @@
   (test3))
 
 (define (test1)
-  (reset)
+  (clear-remembered)
   (remember-objects (list (make-obj 'crater (make-vec2 10 0) 1)))
   (printf "~a~n~n" (unobstructed-point-obj-tangents (make-vec2 0 0)))
   (remember-objects (list (make-obj 'crater (make-vec2 5 1) 1)))
   (printf "~a~n~n" (unobstructed-point-obj-tangents (make-vec2 0 0))))
 
 (define (test2)
-  (reset)
+  (clear-remembered)
   (let ((o1 (make-obj 'crater (make-vec2 10 0) 1))
         (o2 (make-obj 'crater (make-vec2 5 0) 2))
         (o3 (make-obj 'crater (make-vec2 0 0) 1)))
@@ -188,7 +185,7 @@
     (printf "list:~n")
     (while (not (empty? list))
            (printf "--> ~a~n" (pop! list))))
-  (reset)
+  (clear-remembered)
   (let ((o1 (make-obj 'crater (make-vec2 10 0) 1))
         (o2 (make-obj 'crater (make-vec2 0 0) 1)))
     (remember-objects (list o1 o2))
