@@ -2,8 +2,9 @@
 
 (require "angles.scm")
 (require "vec2.scm")
+(require (only-in rnrs/base-6 assert))
 
-(provide tangent tangent2)
+(provide tangent tangent2 circle-circle-tangent)
 
 (define (tangent robot circle radius direction)
   (let-values (((x y a d)
@@ -53,3 +54,56 @@
                (tx (+ robot-x (* cos (+ (* dx cos) (* -1 dy direction sin)))))
                (ty (+ robot-y (* cos (+ (* dy cos) (* dx direction sin) )))))
           (values tx ty #f t)))))
+
+(define (circle-circle-tangent center1 radius1 dir1 center2 radius2 dir2)
+  (if (= dir1 dir2)
+      (circle-circle-tangent-non-crossing center1 radius1 center2 radius2 dir1)
+      (circle-circle-tangent-crossing     center1 radius1 center2 radius2 dir1)))
+
+; http://mathworld.wolfram.com/Circle-CircleTangents.html
+(define (circle-circle-tangent-non-crossing center1 radius1 center2 radius2 dir)
+  (if (< radius2 radius1)
+      (let ((result (circle-circle-tangent-non-crossing center2 radius2 center1 radius1 (- dir))))
+        (cons (cdr result) (car result)))
+      ; assume radius1 smaller:
+      (let* ((p1 center1)
+             (p2 (tangent p1 center2 (- radius2 radius1) dir))
+             (diff (vec2- p2 p1))
+             (radius-dir (vec2-normalize (vec2-rotate-ccw-90 diff)))
+             (adjustment (vec2-scale (* dir radius1) radius-dir))
+             (p1 (vec2+ p1 adjustment))
+             (p2 (vec2+ p2 adjustment)))
+        (cons p1 p2))))
+
+; http://img244.imageshack.us/img244/1309/33535634od7.png
+(define (circle-circle-tangent-crossing center1 radius1 center2 radius2 dir1)
+  (if (< radius2 radius1)
+      (let ((result (circle-circle-tangent-non-crossing center2 radius2 center1 radius1 dir1)))
+        (cons (cdr result) (car result)))
+      ; assume radius1 smaller:
+      (let* ((p1 center1)
+             (p2 (tangent p1 center2 (+ radius2 radius1) (- dir1)))
+             (diff (vec2- p2 p1))
+             (radius-dir (vec2-normalize (vec2-rotate-ccw-90 diff)))
+             (adjustment (vec2-scale (* dir1 radius1) radius-dir))
+             (p1 (vec2+ p1 adjustment))
+             (p2 (vec2+ p2 adjustment)))
+        (cons p1 p2))))
+
+
+(define (test)
+  (define (ex x msg2)
+    (printf "~a~n" x)
+    (printf "should be ~a~n~n" msg2))
+  (ex (circle-circle-tangent (make-vec2 0 1) 1 -1 (make-vec2 10 2) 2 -1)
+      "(0,0) (10,0)")
+
+  (ex (circle-circle-tangent (make-vec2 0 2) 2 -1 (make-vec2 10 1) 1 -1)
+      "(0,0) (10,0)")
+  
+  (ex (circle-circle-tangent (make-vec2 0 1) 1 -1 (make-vec2 10 -2) 2 1)
+      "(0,0) (10,0)")
+
+  (ex (circle-circle-tangent (make-vec2 0 -1) 1 1 (make-vec2 10 2) 2 -1)
+      "(0,0) (10,0)")
+  )
