@@ -1,0 +1,520 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+<TITLE>ICFP 2008 Programming Contest 
+ Task Description 
+</TITLE>
+
+<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<META name="GENERATOR" content="hevea 1.10">
+<STYLE type="text/css">
+.li-itemize{margin:1ex 0ex;}
+.li-enumerate{margin:1ex 0ex;}
+.dd-description{margin:0ex 0ex 1ex 4ex;}
+.dt-description{margin:0ex;}
+.toc{list-style:none;}
+.thefootnotes{text-align:left;margin:0ex;}
+.dt-thefootnotes{margin:0em;}
+.dd-thefootnotes{margin:0em 0em 0em 2em;}
+.footnoterule{margin:1em auto 1em 0px;width:50%;}
+.caption{padding-left:2ex; padding-right:2ex; margin-left:auto; margin-right:auto}
+.title{margin:2ex auto;text-align:center}
+.center{text-align:center;margin-left:auto;margin-right:auto;}
+.flushleft{text-align:left;margin-left:0ex;margin-right:auto;}
+.flushright{text-align:right;margin-left:auto;margin-right:0ex;}
+DIV TABLE{margin-left:inherit;margin-right:inherit;}
+PRE{text-align:left;margin-left:0ex;margin-right:auto;}
+BLOCKQUOTE{margin-left:4ex;margin-right:4ex;text-align:left;}
+TD P{margin:0px;}
+.boxed{border:1px solid black}
+.textboxed{border:1px solid black}
+.vbar{border:none;width:2px;background-color:black;}
+.hbar{border:none;height:2px;width:100%;background-color:black;}
+.hfill{border:none;height:1px;width:200%;background-color:black;}
+.vdisplay{border-collapse:separate;border-spacing:2px;width:auto; empty-cells:show; border:2px solid red;}
+.vdcell{white-space:nowrap;padding:0px;width:auto; border:2px solid green;}
+.display{border-collapse:separate;border-spacing:2px;width:auto; border:none;}
+.dcell{white-space:nowrap;padding:0px;width:auto; border:none;}
+.dcenter{margin:0ex auto;}
+.vdcenter{border:solid #FF8000 2px; margin:0ex auto;}
+.minipage{text-align:left; margin-left:0em; margin-right:auto;}
+.marginpar{border:solid thin black; width:20%; text-align:left;}
+.marginparleft{float:left; margin-left:0ex; margin-right:1ex;}
+.marginparright{float:right; margin-left:1ex; margin-right:0ex;}
+.theorem{text-align:left;margin:1ex auto 1ex 0ex;}
+.part{margin:2ex auto;text-align:center}
+DIV.center{}
+.title{width: 100%}
+.titlemain{border: 3px solid ; padding : 2px ; background-color: #acf ; border-color : #c99; text-align : center}
+.titlerest{border: 3px solid ; padding : 2px ; background-color: #ccf ; border-color : #99c}
+.section{border: 3px solid ; padding : 2px ; background-color: #cfc ; border-color : #9c9}
+.subsection{border: 3px solid ; padding : 2px ; background-color: #ccf ; border-color : #99c}
+</STYLE>
+</HEAD>
+<BODY >
+<!--HEVEA command line is: hevea -exec xxdate.exe -fix -o html/task.html png.hva task.tex -->
+<!--CUT DEF section 1 --><TABLE CLASS="title"><TR><TD><H1 CLASS="titlemain">ICFP 2008 Programming Contest<BR>
+ Task Description </H1><H3 CLASS="titlerest">(Version 1.4)</H3></TD></TR>
+</TABLE><!--TOC section Overview-->
+<H2 CLASS="section"><!--SEC ANCHOR --><A NAME="htoc1">1</A>&#XA0;&#XA0;Overview</H2><!--SEC END --><P>
+<A NAME="sec:overview"></A>
+Recent breakthroughs in higher-order, statically-typed, metaspatial
+communication will enable data to be transferred between Mars and
+Earth almost instantaneously.
+As such, NASA is seeking
+examples of real-time control software to operate its latest model
+Martian rovers from control centers on Earth. Since it is well known
+that the ICFP contest attracts the <I>cr&#XE8;me de la cr&#XE8;me</I> of
+programmers from around the world, NASA has decided to use the
+current contest as a means of gathering software prototypes for their
+new control system. We are pleased to announce that this year&#X2019;s
+winning entry will in fact be used to control the rover on NASA&#X2019;s very
+next mission to Mars!<SUP><A NAME="text1" HREF="#note1">1</A></SUP></P><P>Your control software will communicate with the rover over a network socket.
+Its object is to guide the rover safely from a given starting location
+to its home base. The controller&#X2019;s
+primary function is to avoid the boulders and craters that
+litter the Martian surface. As an added nuisance, the local
+inhabitants, who are decidedly hostile, will immediately destroy
+any rover they can get their fourteen sticky fingers on. Note that
+Martians, like dogs, vary in intelligence.</P><P>Control software prototypes will be evaluated according to their
+performance in a series of trials, the details of which are given
+below.
+Each trial consists of five runs on a given region of Mars.
+As a means of preparing for these trials, this document
+and its accompanying software provide sufficient details and
+infrastructure for the development of prototype candidates. Good
+luck, and may yours be the winning entry, to be used on Mars
+itself.
+</P><!--TOC section Mars rover behavior-->
+<H2 CLASS="section"><!--SEC ANCHOR --><A NAME="htoc2">2</A>&#XA0;&#XA0;Mars rover behavior</H2><!--SEC END --><P>
+<A NAME="sec:behavior"></A>
+</P><P>The rover is a circular vehicle of radius 0.5m, which your controller must
+guide across the Martian terrain.
+To do so, your controller must establish a connection to the rover over a TCP/IP socket.
+This socket it used for all communication to and from the rover.
+While metaspatial communication is very fast, there is some latency in the
+connection (on the order of 75 microseconds).</P><BLOCKQUOTE CLASS="figure"><DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV>
+<DIV CLASS="center">
+<IMG SRC="task001.png">
+</DIV><DIV CLASS="caption"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD VALIGN=top ALIGN=left>Figure 1: A region of Mars</TD></TR>
+</TABLE></DIV>
+<A NAME="fig:sim"></A>
+<DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV></BLOCKQUOTE><P>Once the connection is established, the controller will be sent an initial
+message about the dimensions of the world and the physical
+characteristics of the vehicle. 
+The world is modeled as a rectangular segment of the <I>xy</I>-plane 
+centered at the origin.
+The <I>home base</I> &#X2014; the rover&#X2019;s intended destination &#X2014; is a circle
+(radius 5m) located at the origin.
+The vehicle&#X2019;s characteristics include its maximum speed, its maximum rotational
+speed when turning, and a few other facts.
+NASA is testing various different models of rovers, which have varying performance.
+They are also testing different regions of Mars, with a wide range of characteristics.
+For a given trial, the rover&#X2019;s performance and the map will be fixed,
+but these will vary from trial to trial.
+Complete information on the initial message is furnished in Section&#XA0;<A HREF="#sec:rover-char">3.1.1</A> below.</P><P>About one second after the initial message is sent, the first run starts and
+the server begins sending a stream of vehicle telemetry data to the controller.
+Telemetry data consists of location, speed, and information about the local
+terrain (see Section&#XA0;<A HREF="#subsec:telemetry">3.1.2</A> for full details). 
+At any time after the telemetry data has started streaming to the controller, the
+controller may issue commands back to the server to direct the vehicle
+towards home base.</P><P>The rover must avoid three kinds of perils on its way home. If
+the rover hits a boulder, or the edge of the map, it bounces off and loses speed.
+Hitting a boulder happens if the distance between the center of the boulder and
+the center of the rover is less than the sum of their radii.
+If the center of the rover enters a crater, it falls in and explodes. 
+If a vehicle is caught by a Martian, it is destroyed and its remains 
+are sacrificed to the Gods of Barsoom, of whom it is best not to speak further.</P><P>Martians, while hostile, possess no special physical abilities; that is,
+they cannot drive through craters, pass through
+objects, or escape the boundary of the map.
+The physics of Martian movement is the same as for the rover, although they
+may be faster or slower, <I>etc</I>.
+Martians are slightly smaller than the rover, having a radius of 0.4m.</P><P>An illustration of a typical Martian region appears in Figure&#XA0;<A HREF="#fig:sim">1</A>.
+Boulders, craters and home base are marked <I>b</I>, <I>c</I> and <I>h</I> respectively.</P><!--TOC subsection Vision-->
+<H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc3">2.1</A>&#XA0;&#XA0;Vision</H3><!--SEC END --><P>
+<A NAME="subsec:vision"></A></P><P>The rover&#X2019;s visual sensors cover an elliptical area that extends further in the direction that the
+rover is facing.
+Figure&#XA0;<A HREF="#fig:vision">2</A> depicts this region.
+</P><BLOCKQUOTE CLASS="figure"><DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV>
+<DIV CLASS="center">
+<IMG SRC="task002.png">
+</DIV><DIV CLASS="caption"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD VALIGN=top ALIGN=left>Figure 2: A sketch of the vision model</TD></TR>
+</TABLE></DIV>
+<A NAME="fig:vision"></A>
+<DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV></BLOCKQUOTE><P>The rover is oriented toward the right in this illustration.
+Implicitly, there is an ellipse defined by min and max, with the rover always positioned at one of the foci.
+The rover can see everything within this ellipse, with the exception of those objects that are occluded by boulders. In the figure, the rightmost boulder is not visible to the rover because of the larger boulder blocking it. The lowermost boulder, on the other hand, is visible, since craters do not occlude vision.</P><!--TOC subsection Speed-->
+<H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc4">2.2</A>&#XA0;&#XA0;Speed</H3><!--SEC END --><P>
+<A NAME="subsec:speed"></A>
+The linear speed of the rover at time <I>t</I>&#X2032; (<I>s</I><SUB><I>t</I>&#X2032;</SUB>) is computed according to its speed at 
+its predecessor time <I>t</I> according to the following formula.
+</P><TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell">&#XA0;&#XA0;<I>s</I><SUB><I>t</I>&#X2032;</SUB>&#XA0;=&#XA0;max(<I>s</I><SUB><I>t</I></SUB>&#XA0;+&#XA0;(<I>t</I>&#X2032;&#XA0;&#X2212;&#XA0;<I>t</I>)&#XA0;<I>a</I>&#XA0;&#X2212;&#XA0;<I>k</I>&#XA0;(<I>t</I>&#X2032;&#XA0;&#X2212;&#XA0;<I>t</I>)&#XA0;<I>s</I><SUB><I>t</I></SUB><SUP>2</SUP>,&#XA0;0)
+</TD></TR>
+</TABLE><P>The latter term is the simulated <I>drag</I> on the vehicle.
+Note <I>a</I>, the <I>acceleration</I>, can be negative if
+the rover is braking.
+The rover&#X2019;s acceleration and braking rates are not known, although they can be determined
+by experiment.
+The effect of drag is to limit the maximum speed of the rover.
+The maximum speed is known (it is communicated as part of the initial message), but
+the drag coefficient is not known.</P><!--TOC subsection Turning-->
+<H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc5">2.3</A>&#XA0;&#XA0;Turning</H3><!--SEC END --><P>
+The rover has two turning speeds &#X2014; regular turns and hard turns &#X2014; in both
+directions. 
+When the rover receives a commend to turn left, its turning state moves one &#X201C;notch&#X201D;
+in the leftward direction; likewise for right.
+Note that while the turn rate and hard-turn rates are known, the rotational acceleration of
+the vehicle is finite and thus it will take some time change from one turning mode to
+another.
+Section&#XA0;<A HREF="#subsec:c2s">3.2</A> addresses the mechanics of steering messages in greater detail.</P><!--TOC section Network protocol-->
+<H2 CLASS="section"><!--SEC ANCHOR --><A NAME="htoc6">3</A>&#XA0;&#XA0;Network protocol</H2><!--SEC END --><P>
+<A NAME="sec:protocol"></A>
+Communication between the server and controller will be over a TCP/IP
+socket using plain-text messages encoded in ASCII.
+The controller will be given a
+server hostname and port number as command-line arguments at the
+beginning of each trial. The controller should establish a
+client-side TCP/IP connection to the server; this socket will be used
+by the controller to send commands to the vehicle and by the server to
+send telemetry data to the controller.</P><P>A <I>message</I> is a sequence of tokens delimited by the ASCII space
+character (<TT>0x20</TT>) and terminated by a semicolon.
+The tokens in a message represent quantities of various kinds and have the
+following formats:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+Distances, lengths, and locations (<I>x</I> and <I>y</I> coordinates) are given in
+meters in fixed-point representation rounded to the nearest thousandth (millimeter).
+</LI><LI CLASS="li-itemize">Angles are given in degrees in fixed-point representation
+rounded to the nearest tenth.
+</LI><LI CLASS="li-itemize">Speeds are given in meters per second in fixed-point representation
+rounded to the nearest thousandth.
+</LI><LI CLASS="li-itemize">Durations are given in whole milliseconds (since the start of the simulation).
+</LI></UL><!--TOC subsection Messages from the server to the controller-->
+<H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc7">3.1</A>&#XA0;&#XA0;Messages from the server to the controller</H3><!--SEC END --><P>
+<A NAME="subsec:s2c"></A></P><P>There are a variety of messages that the rover sends to the controller.
+Each message begins with a single character that denotes the message kind.</P><!--TOC subsubsection Initialization-->
+<H4 CLASS="subsubsection"><!--SEC ANCHOR --><A NAME="htoc8">3.1.1</A>&#XA0;&#XA0;Initialization</H4><!--SEC END --><P>
+<A NAME="sec:rover-char"></A></P><P>The exact characteristics of the vehicle are unspecified and may differ between
+trials, but information about the vehicle will be given at the
+beginning of each trail.
+Once the connection to the server is established, the controller will
+receive an initial message with the following format:
+</P><DIV CLASS="center">
+<TT><B>I</B></TT> <I>dx</I> <I>dy</I> <I>time-limit</I> <I>min-sensor</I> <I>max-sensor</I> <I>max-speed</I> <I>max-turn</I> <I>max-hard-turn</I> <TT><B>;</B></TT>
+</DIV><DL CLASS="description"><DT CLASS="dt-description">
+<B><TT><B>I</B></TT></B></DT><DD CLASS="dd-description"> is the message tag signifying initialization.
+</DD><DT CLASS="dt-description"><B><I>dx</I></B></DT><DD CLASS="dd-description"> is the span of the map&#X2019;s <I>x</I>-axis (meters). 
+A map with <I>dx</I> 100.000 extends from -50.000 to 50.000 on the <I>x</I>-axis.
+</DD><DT CLASS="dt-description"><B><I>dy</I></B></DT><DD CLASS="dd-description"> is the span of the map&#X2019;s <I>y</I>-axis (meters).
+A map with <I>dy</I> 100.000 extends from -50.000 to 50.000 on the <I>y</I>-axis.
+</DD><DT CLASS="dt-description"><B><I>time-limit</I></B></DT><DD CLASS="dd-description"> is the time limit for the map (milliseconds).
+Map time limits are discussed in Section&#XA0;<A HREF="#sec:scoring">4</A> below.
+</DD><DT CLASS="dt-description"><B><I>min-sensor</I></B></DT><DD CLASS="dd-description"> is the minimum range of the vehicle&#X2019;s visual sensors (meters).
+See the discussion of the vision model in Section&#XA0;<A HREF="#subsec:vision">2.1</A> above.
+</DD><DT CLASS="dt-description"><B><I>max-sensor</I></B></DT><DD CLASS="dd-description"> is the maximum range of the vehicle&#X2019;s visual sensors (meters).
+See the discussion of the vision model in Section&#XA0;<A HREF="#subsec:vision">2.1</A> above.
+</DD><DT CLASS="dt-description"><B><I>max-speed</I></B></DT><DD CLASS="dd-description"> is the maximum speed of the vehicle (meters per second).
+</DD><DT CLASS="dt-description"><B><I>max-turn</I></B></DT><DD CLASS="dd-description"> is the maximum rotational speed when turning (degrees per second).
+</DD><DT CLASS="dt-description"><B><I>max-hard-turn</I></B></DT><DD CLASS="dd-description"> is the maximum rotational speed when
+turning hard (degrees per second).
+</DD></DL><!--TOC subsubsection Telemetry stream-->
+<H4 CLASS="subsubsection"><!--SEC ANCHOR --><A NAME="htoc9">3.1.2</A>&#XA0;&#XA0;Telemetry stream</H4><!--SEC END --><P>
+<A NAME="subsec:telemetry"></A></P><P>During a run, the server sends a steady stream of telemetry data to
+the vehicle controller (roughly one message every 100 milliseconds).
+This data includes information about the
+vehicle&#X2019;s current state (control-state, heading, velocity, <I>etc</I>.) as
+well as information about the local map conditions (obstacles and
+enemies).
+</P><DIV CLASS="center">
+<TT><B>T</B></TT> <I>time-stamp</I> <I>vehicle-ctl</I> <I>vehicle-x</I> <I>vehicle-y</I> <I>vehicle-dir</I> <I>vehicle-speed</I> <I>objects</I> <TT><B>;</B></TT>
+</DIV><P>where
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B><TT><B>T</B></TT></B></DT><DD CLASS="dd-description"> is the message tag signifying telemetry data.
+</DD><DT CLASS="dt-description"><B><I>time-stamp</I></B></DT><DD CLASS="dd-description"> is the number of milliseconds since the start of the run.
+</DD><DT CLASS="dt-description"><B><I>vehicle-ctl</I></B></DT><DD CLASS="dd-description"> is the current state of the vehicle controls.
+It is a two-character sequence with the first character specifying the acceleration
+state (<TT><B>a</B></TT> for accelerating, <TT><B>b</B></TT> for braking, or
+<TT><B>-</B></TT> for rolling, <I>i.e.</I>, moving at a constant speed) and the second
+character specifying the turning
+state (<TT><B>L</B></TT> for hard-left turn, <TT><B>l</B></TT> for left turn, <TT><B>-</B></TT>&#XA0;for
+straight ahead, <TT><B>r</B></TT> for right turn, and <TT><B>R</B></TT> for hard-right turn).
+Note that the rover will gradually slow down when rolling, because of drag.
+</DD><DT CLASS="dt-description"><B><I>vehicle-x</I></B></DT><DD CLASS="dd-description"> is the <I>x</I>-coordinate of the vehicle&#X2019;s current position.
+</DD><DT CLASS="dt-description"><B><I>vehicle-y</I></B></DT><DD CLASS="dd-description"> is the <I>y</I>-coordinate of the vehicle&#X2019;s current position.
+</DD><DT CLASS="dt-description"><B><I>vehicle-dir</I></B></DT><DD CLASS="dd-description"> is the direction of the vehicle measured as a counterclockwise
+angle from the <I>x</I>-axis.
+</DD><DT CLASS="dt-description"><B><I>vehicle-speed</I></B></DT><DD CLASS="dd-description"> is the vehicle&#X2019;s current speed (meters per second).
+</DD><DT CLASS="dt-description"><B><I>objects</I></B></DT><DD CLASS="dd-description"> is a sequence of zero or more obstacles and/or enemies that
+are visible to the vehicle.
+An item is <I>visible</I> if it falls in the range of the vehicle&#X2019;s visual sensors; recall
+that range is part of the rover characteristics given in the server&#X2019;s initial message.
+Object messages have two different formats depending on the type of object.
+If the object is a boulder, crater, or home base, the format is
+<DIV CLASS="center">
+<I>object-kind</I> <I>object-x</I> <I>object-y</I> <I>object-r</I>
+</DIV>where
+<DL CLASS="description"><DT CLASS="dt-description">
+<B><I>object-kind</I></B></DT><DD CLASS="dd-description"> is one of <TT><B>b</B></TT> (for a boulder), <TT><B>c</B></TT> (for a crater), or <TT><B>h</B></TT> (for home base).
+</DD><DT CLASS="dt-description"><B><I>object-x</I></B></DT><DD CLASS="dd-description"> is the <I>x</I>-coordinate of the object&#X2019;s center.
+</DD><DT CLASS="dt-description"><B><I>object-y</I></B></DT><DD CLASS="dd-description"> is the <I>y</I>-coordinate of the object&#X2019;s center.
+</DD><DT CLASS="dt-description"><B><I>object-r</I></B></DT><DD CLASS="dd-description"> is the radius of the object.
+</DD></DL>If the object is a Martian, the description has the format
+<DIV CLASS="center">
+<TT><B>m</B></TT> <I>enemy-x</I> <I>enemy-y</I> <I>enemy-dir</I> <I>enemy-speed</I>
+</DIV></DD></DL><P>Here is an example telemetry message.
+Note that we have split this message over multiple lines to improve readability &#X2014;
+the actual message would not contain any newline characters.
+</P><BLOCKQUOTE><FONT COLOR=blue><TT>
+T 3450 aL -234.040 811.100 47.5 8.450<BR/>
+b -220.000 750.000 12.000<BR/>
+m -240.000 812.000 90.0 9.100 ;
+</TT></FONT></BLOCKQUOTE><P>This message describes the vehicle&#X2019;s state at 3.45 seconds after the
+start of the run. It is currently accelerating and turning hard to
+the left. Its position is (&#X2212;234.040, 811.100), its direction is
+47.5 degrees (roughly NE), its velocity is 8.450 meters per second,
+and it sees one boulder and one Martian.</P><!--TOC subsubsection Adverse events-->
+<H4 CLASS="subsubsection"><!--SEC ANCHOR --><A NAME="htoc10">3.1.3</A>&#XA0;&#XA0;Adverse events</H4><!--SEC END --><P>
+<A NAME="subsec:adverse"></A></P><P>There are also messages to signal unhappy occurrences.
+These messages have the format:
+</P><DIV CLASS="center">
+<I>message-tag</I> <I>time-stamp</I> <TT><B>;</B></TT>
+</DIV><P>where the <I>message-tag</I> is one of
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B><TT><B>B</B></TT></B></DT><DD CLASS="dd-description"> for a crash against a boulder or the map edge.
+When the rover crashes into a boulder, it bounces off and loses speed.
+Each crash message is immediately followed by a telemetry message so that the
+controller can update its state.
+</DD><DT CLASS="dt-description"><B><TT><B>C</B></TT></B></DT><DD CLASS="dd-description"> if the vehicle fell into a crater.
+Falling into a crater destroys the rover and ends the run.
+</DD><DT CLASS="dt-description"><B><TT><B>K</B></TT></B></DT><DD CLASS="dd-description"> if the vehicle was killed by a Martian, which
+ends the run.
+</DD></DL><!--TOC subsubsection Success message-->
+<H4 CLASS="subsubsection"><!--SEC ANCHOR --><A NAME="htoc11">3.1.4</A>&#XA0;&#XA0;Success message</H4><!--SEC END --><P>
+<A NAME="subsec:success"></A></P><P>The server sends the message &#X201C;<TT><B>S</B></TT> <I>t</I> <TT><B>;</B></TT>&#X201D; when the vehicle reaches
+home base safely.
+The current run is terminated on success.</P><!--TOC subsubsection End-of-run message-->
+<H4 CLASS="subsubsection"><!--SEC ANCHOR --><A NAME="htoc12">3.1.5</A>&#XA0;&#XA0;End-of-run message</H4><!--SEC END --><P>
+<A NAME="subsec:end-run"></A></P><P>At the end of a run, the server sends the message &#X201C;<TT><B>E</B></TT> <I>t</I> <I>s</I> <TT><B>;</B></TT>,&#X201D;
+where <I>t</I> is the time since the beginning 
+of the run, and <I>s</I> is the score (<I>i.e.</I>, the run time plus any penalties).
+Note that each run will end with exactly one of the following sequences of
+server messages:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+<TT><B>C</B></TT> <I>t</I> <TT><B>;</B></TT>, then <TT><B>E</B></TT> <I>t</I> <I>s</I> <TT><B>;</B></TT>
+</LI><LI CLASS="li-itemize"><TT><B>K</B></TT> <I>t</I> <TT><B>;</B></TT>, then <TT><B>E</B></TT> <I>t</I> <I>s</I> <TT><B>;</B></TT>
+</LI><LI CLASS="li-itemize"><TT><B>S</B></TT> <I>t</I> <TT><B>;</B></TT>, then <TT><B>E</B></TT> <I>t</I> <I>s</I> <TT><B>;</B></TT>
+</LI><LI CLASS="li-itemize"><TT><B>E</B></TT> <I>t</I> <I>s</I> <TT><B>;</B></TT> preceded by none of 
+<TT><B>C</B></TT>, <TT><B>K</B></TT>, or <TT><B>S</B></TT>, indicating that the 
+time limit has been reached
+</LI></UL><P>Once a run has terminated, there will be a pause of at least one second before the
+start of the next run.
+Note that the controller should not exit at the end of the run, but instead should prepare
+for another run.
+Also note that the initialization message described in Section&#XA0;<A HREF="#sec:rover-char">3.1.1</A> is only
+sent once per trial.
+Each run of the trial uses the same map, although the rover&#X2019;s initial position and the
+number and location of Martians can vary from run to run.</P><!--TOC subsection Messages from the controller to the server-->
+<H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc13">3.2</A>&#XA0;&#XA0;Messages from the controller to the server</H3><!--SEC END --><P>
+<A NAME="subsec:c2s"></A>
+The rover behavior is controlled by a pair of state machines (Figure&#XA0;<A HREF="#fig:control">3</A>),
+which, in turn, are controlled by commands sent by the controller.
+</P><BLOCKQUOTE CLASS="figure"><DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV>
+<DIV CLASS="center">
+<IMG SRC="task003.png">
+</DIV><DIV CLASS="center">
+<IMG SRC="task004.png">
+</DIV><DIV CLASS="caption"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD VALIGN=top ALIGN=left>Figure 3: Vehicle-control state machines</TD></TR>
+</TABLE></DIV>
+<A NAME="fig:control"></A>
+<DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV></BLOCKQUOTE><P>Each command consists of an optional acceleration (<TT><B>a</B></TT>) or braking
+(<TT><B>b</B></TT>) command, followed by an optional turning command (<TT><B>l</B></TT> for left
+and <TT><B>r</B></TT> for right), and followed by a semicolon (<TT><B>;</B></TT>).
+Thus, the grammar of controller-to-server messages is
+</P><TABLE CLASS="display dcenter"><TR VALIGN="middle"><TD CLASS="dcell"><I><I>Message</I></I>&#XA0;::=
+<TT><B>;</B></TT>&#XA0;&#XA0;&#XA0;&#XA0;|&#XA0;&#XA0;
+<TT><B>a;</B></TT>&#XA0;&#XA0;&#XA0;|&#XA0;&#XA0;
+<TT><B>b;</B></TT>&#XA0;&#XA0;&#XA0;|&#XA0;&#XA0;
+<TT><B>l;</B></TT>&#XA0;&#XA0;&#XA0;|&#XA0;
+<TT><B>r;</B></TT>&#XA0;&#XA0;&#XA0;|&#XA0;&#XA0;
+<TT><B>al;</B></TT>&#XA0;&#XA0;|&#XA0;&#XA0;
+<TT><B>ar;</B></TT>&#XA0;&#XA0;|&#XA0;&#XA0;
+<TT><B>bl;</B></TT>&#XA0;&#XA0;|&#XA0;&#XA0;
+<TT><B>br;</B></TT>
+</TD></TR>
+</TABLE><P>
+<EM>No other characters (including whitespace) should be sent over the command stream!</EM></P><P>While communication with the rover is fast, there may be some latency (less than
+20 milliseconds) in processing the commands.
+The controller may send messages as often as it likes, although flooding the network
+can negatively affect performance.
+We recommend only sending messages in response to telemetry data, although you may need
+a sequence of messages to reach the desired control state.
+
+</P><!--TOC section Contest organization and scoring-->
+<H2 CLASS="section"><!--SEC ANCHOR --><A NAME="htoc14">4</A>&#XA0;&#XA0;Contest organization and scoring</H2><!--SEC END --><P>
+<A NAME="sec:scoring"></A>
+</P><P>The contest is run as a series of trials of varying difficulty.
+A <I>trial</I> consists of five <I>run</I>s on the same map.
+Each map has an associated <I>time limit</I> of some number of milliseconds. 
+A <I>limit-</I><I><I>n</I></I><I> map</I> has an upper limit of <I>n</I> milliseconds.</P><P>The <I>score</I> for a run is the amount of time it takes to complete the run or be destroyed, plus any penalties.
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+If a rover reaches home base on a given limit-<I>n</I> map in some <I>t</I> &#X2264; <I>n</I> number of milliseconds,
+the run score is <I>t</I>.
+</LI><LI CLASS="li-itemize">If the rover fails to reach home base on a given limit-<I>n</I> map, the run score is given
+by the equation 2 <I>n</I> &#X2212; <I>t</I> + <I>p</I>, where <I>t</I> is the elapsed time, and <I>p</I> is the penalty
+as follows:
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+100 if the time limit has been exceeded,
+</LI><LI CLASS="li-itemize">600 if the rover was destroyed by a Martian, or
+</LI><LI CLASS="li-itemize">1000 if the rover fell into a crater.
+</LI></UL>Note that <I>t</I> is at most <I>n</I> in this formula, since the run is halted when
+<I>t</I> exceeds <I>n</I>.
+Therefore (2<I>n</I>&#X2212;<I>t</I>) will always be between <I>n</I> and 2<I>n</I> inclusive.
+</LI></UL><P>As in ski racing, lower scores are better.</P><P>The <I>trial score</I> is the sum of the three lowest scores in the trial.</P><P>The winner of the contest will be determined by a series of <I>heats</I>.
+A heat consists of all remaining competitors being subjected to the same trial.
+After each heat, the competitors are ranked by their trial score and
+some fraction of the better competitors
+will advance to the next heat, while the remaining competitors will
+be eliminated.
+Heats will continue until there is a single winner remaining.
+From one heat to the next, the given trial may differ arbitrarily.</P><P>Programs that core dump will be disqualified.</P><P>Programs that attempt to subvert the host or server, or that generate
+illegal messages will be disqualified.
+</P><!--TOC section Submission instructions-->
+<H2 CLASS="section"><!--SEC ANCHOR --><A NAME="htoc15">5</A>&#XA0;&#XA0;Submission instructions</H2><!--SEC END --><P>
+<A NAME="sec:submission"></A>
+</P><P>Your submission must run in the Linux environment provided by the LiveCD provided
+on the contest web site.
+The LiveCD includes many popular language implementations, but if your favorite
+language is not included, you may still submit a solution.
+The only restriction is that it must run in the LiveCD environment.
+Details about the LiveCD can be found at
+</P><DIV CLASS="center">
+<TT>http://icfpcontest.org/live-cd.html</TT>
+</DIV><P>Contest entries must consist of a single gzipped tarball named <TT>icfp08.tgz</TT>.
+You submit your entry using the web form at
+</P><DIV CLASS="center">
+<TT>http://icfpcontest.org/submit.php</TT>
+</DIV><P>The first time that you submit your entry, you will be given a unique identifier
+that you must use for any resubmissions.</P><P>After unbundling, an optional installation script is run.
+The resulting directory tree must include all of the following:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+at the top level, a directory <TT>icfp08</TT>.
+</LI><LI CLASS="li-itemize">a file <TT>team</TT>, inside <TT>icfp08</TT>, 
+which consists of a single line of text, the team name. 
+Your team name must be no longer that 63 ASCII characters.
+</LI><LI CLASS="li-itemize">a file <TT>contact</TT>, inside <TT>icfp08</TT>, 
+which consists of the team member names and email addresses in
+the following format:
+<BLOCKQUOTE><FONT COLOR=blue><TT>
+</TT></FONT><FONT COLOR=blue><TT>John Doe &lt;johndoe@gmail.com&gt;</TT></FONT><FONT COLOR=blue><TT>
+</TT></FONT></BLOCKQUOTE>Name/address pairs must appear one per line.
+</LI><LI CLASS="li-itemize">a directory <TT>src</TT> containing all the source code for your contest entry.
+Inside <TT>src</TT>, your code may be organized however you like.
+Please note: you <EM>must</EM> provide source code, even if you use an
+unsupported language or compiler to develop your entry.
+Submissions with no accompanying source code will be disqualified.
+</LI><LI CLASS="li-itemize">a file <TT>README</TT>, inside <TT>src</TT>, to assist the judges&#X2019; understanding of your code.
+If you used tools not among those provided on the LiveCD, specify the language and 
+compiler your team used in this file and describe how to obtain and install the tools.
+</LI><LI CLASS="li-itemize">a directory <TT>bin</TT>, inside <TT>icfp08</TT>, containing whatever executables and scripts support the
+running of your controller.
+</LI><LI CLASS="li-itemize">an executable file <TT>run</TT>, inside <TT>bin</TT>, which runs your client.
+It may be an executable, or it may
+be a shell script that manages running your client. It must take
+two command-line arguments, the server&#X2019;s hostname and the port number, in that order.
+That is, the judges must be able to execute your client with
+<BLOCKQUOTE><FONT COLOR=blue><TT>
+</TT></FONT><FONT COLOR=blue><TT>bin/run</TT></FONT><FONT COLOR=blue><TT> </TT></FONT><FONT COLOR=blue><TT><I>hostname</I></TT></FONT><FONT COLOR=blue><TT> </TT></FONT><FONT COLOR=blue><TT><I>port</I></TT></FONT><FONT COLOR=blue><TT>
+</TT></FONT></BLOCKQUOTE>
+from inside the <TT>icfp08</TT> directory.
+</LI></UL><P>
+Your tarball may include other files as well, including
+code for general-purpose third-party libraries, with
+your submission as long as your <TT>README</TT> enumerates those libraries.
+Teams may not use code written by other teams working on the contest as a &#X201C;library.&#X201D;
+Only generic libraries, <I>e.g.</I>, one that provides matrix operations, may be used. 
+Teams who use libraries as a means of sharing code with one another will be disqualified.</P><P>The structure of a contest entry is illustrated in Figure&#XA0;<A HREF="#fig:submit">4</A>.
+</P><BLOCKQUOTE CLASS="figure"><DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV>
+<DIV CLASS="center">
+<IMG SRC="task005.png">
+</DIV><DIV CLASS="caption"><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD VALIGN=top ALIGN=left>Figure 4: Submission directory structure</TD></TR>
+</TABLE></DIV>
+<A NAME="fig:submit"></A>
+<DIV CLASS="center"><HR WIDTH="80%" SIZE=2></DIV></BLOCKQUOTE><P>In addition, your archive may contain an optional installation script <TT>install</TT> in the <TT>bin</TT> directory.
+If this script is present, it will be executed using the command
+</P><BLOCKQUOTE><FONT COLOR=blue><TT>
+</TT></FONT><FONT COLOR=blue><TT>bin/install</TT></FONT><FONT COLOR=blue><TT>
+</TT></FONT></BLOCKQUOTE><P>
+from inside the <TT>icfp08</TT> directory.
+The <TT>PWD</TT> shell variable and <TT>pwd</TT> command can be used to determine the path
+to the <TT>icfp08</TT> directory (and thus to your scripts, <I>etc</I>.).
+The layout of your submission is not checked until after this program is run, so it may
+be used to generate or modify the files in your submission, but it should not
+attempt to copy files outside the <TT>icfp08</TT>
+directory.</P><P>The process of running your client for a given trial will involve the following steps:
+</P><BLOCKQUOTE><FONT COLOR=blue><TT>
+tar -xzf icfp08.tgz<BR/>
+cd icfp08<BR/>
+if test -r bin/install ; then<BR/>
+chmod +x bin/install<BR/>
+bin/install<BR/>
+fi<BR/>
+chmod +x bin/run<BR/>
+bin/run </TT></FONT><FONT COLOR=blue><TT><I>hostname</I></TT></FONT><FONT COLOR=blue><TT> </TT></FONT><FONT COLOR=blue><TT><I>port</I></TT></FONT><FONT COLOR=blue><TT>
+</TT></FONT></BLOCKQUOTE><P>These commands will be run as user <TT>knoppix</TT> (<EM>not</EM> <TT>root</TT>) in
+a temporary directory.</P><P>The specifications above must be matched exactly, since contest entries will be processed by scripts depending on the exact structure presented here.
+Failure to meet the specifications is grounds for disqualification.</P><!--TOC section How to test your program-->
+<H2 CLASS="section"><!--SEC ANCHOR --><A NAME="htoc16">6</A>&#XA0;&#XA0;How to test your program</H2><!--SEC END --><P>
+<A NAME="sec:howto"></A>
+</P><P>NASA is providing a Martian simulator and sample maps for contestants to test their
+code on while developing their contest entries.
+Note that while this simulator is a physically accurate simulation of the
+Martian environment, the vehicle characteristics may vary in the actual trials.
+Furthermore, the environment used to test your controller may be harsher
+(<I>i.e.</I>, more obstacles) than the samples and the Martians therein
+may be faster and smarter.
+Prepare for the worst!</P><P>The sample simulator and maps are available for download from
+</P><DIV CLASS="center">
+<TT>http://smlnj.org/icfp08-contest/simulator.html</TT>
+</DIV><P>To run the server, you must supply it with the name of a map file.
+Details on the map file format appear on the web site.</P><!--TOC section Implementation hints-->
+<H2 CLASS="section"><!--SEC ANCHOR --><A NAME="htoc17">7</A>&#XA0;&#XA0;Implementation hints</H2><!--SEC END --><P>
+<A NAME="sec:impl"></A>
+Because the controller program is sensitive to network
+latency, you should disable Nagle&#X2019;s algorithm for
+the socket.
+You can do this using the <TT>setsockopt</TT> system call with
+the <TT>TCP_NODELAY</TT> option.</P><P>Implementations may use information gathered in early runs of
+a trial to improve their score in later runs.
+Note that since a single execution of the controller program
+is used for the whole trial, you do not need to use disk storage
+to communicate information between runs.
+No information can be communicated between trials.
+</P><P>Good luck!</P><!--TOC section Document history-->
+<H2 CLASS="section"><!--SEC ANCHOR -->Document history</H2><!--SEC END --><DL CLASS="description"><DT CLASS="dt-description">
+<B>Version 1.0</B></DT><DD CLASS="dd-description"> Initial version.
+</DD><DT CLASS="dt-description"><B>Version 1.1</B></DT><DD CLASS="dd-description"> Changed installation behavior to make the
+<TT>install</TT> and <TT>run</TT> scripts executable before running it.
+</DD><DT CLASS="dt-description"><B>Version 1.2</B></DT><DD CLASS="dd-description"> Correction in Section&#XA0;<A HREF="#sec:protocol">3</A>: &#X201C;IP address&#X201D;
+changed to &#X201C;hostname.&#X201D;
+</DD><DT CLASS="dt-description"><B>Version 1.3</B></DT><DD CLASS="dd-description"> Fixed small text typo.
+Clarified the fact that drag is unknown.
+Fixed installation behavior description.
+Clarified falling and crashing behavior.
+</DD><DT CLASS="dt-description"><B>Version 1.4</B></DT><DD CLASS="dd-description">
+Removed erroneous definition of a run from Section&#XA0;<A HREF="#sec:scoring">4</A>.
+Stated that generic third-party libraries <EM>may</EM> be submitted in
+Section&#XA0;<A HREF="#sec:submission">5</A>.
+</DD></DL><!--BEGIN NOTES document-->
+<HR CLASS="footnoterule"><DL CLASS="thefootnotes"><DT CLASS="dt-thefootnotes">
+<A NAME="note1" HREF="#text1">1</A></DT><DD CLASS="dd-thefootnotes">
+Subject to budget constraints.
+
+</DD></DL>
+<!--END NOTES-->
+<!--CUT END -->
+<!--HTMLFOOT-->
+<!--ENDHTML-->
+<!--FOOTER-->
+<HR SIZE=2><BLOCKQUOTE CLASS="quote"><EM>This document was translated from L<sup>A</sup>T<sub>E</sub>X by
+</EM><A HREF="http://hevea.inria.fr/index.html"><EM>H</EM><EM><FONT SIZE=2><sup>E</sup></FONT></EM><EM>V</EM><EM><FONT SIZE=2><sup>E</sup></FONT></EM><EM>A</EM></A><EM>.</EM></BLOCKQUOTE></BODY>
+</HTML>

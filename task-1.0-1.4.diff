@@ -1,0 +1,188 @@
+7,8c7
+< <title>ICFP 2008 Programming Contest Task Description (Version
+< 1.0)</title>
+---
+> <title>ICFP 2008 Programming Contest Task Description</title>
+59d57
+< <tbody>
+63,65c61,62
+< Task Description<br>
+< <font size="4">(Version 1.0)</font></h1>
+< <h3 class="titlerest">July&nbsp;11, 2008</h3>
+---
+> Task Description</h1>
+> <h3 class="titlerest">(Version 1.4)</h3>
+68d64
+< </tbody>
+115,116c111,112
+< <hr size="2" width="80%"></div>
+< <div class="center"><img src="task-1.0_files/task001.png"></div>
+---
+> <hr width="80%" size="2"></div>
+> <div class="center"><img src="task001.png"></div>
+118,119c114
+< <table cellpadding="0" cellspacing="6">
+< <tbody>
+---
+> <table cellspacing="6" cellpadding="0">
+123d117
+< </tbody>
+128c122
+< <hr size="2" width="80%"></div>
+---
+> <hr width="80%" size="2"></div>
+130c124
+< <p>Once the connection is established, the controller will be send
+---
+> <p>Once the connection is established, the controller will be sent
+141c135
+< map will be fixed, but these will vary from trial to trail.
+---
+> map will be fixed, but these will vary from trial to trial.
+154,157c148,153
+< and loses speed. If the vehicle enters a crater, it falls in and
+< explodes. If a vehicle is caught by a Martian, it is destroyed and
+< its remains are sacrificed to the Gods of Barsoom, of whom it is
+< best not to speak further.</p>
+---
+> and loses speed. Hitting a boulder happens if the distance between
+> the center of the boulder and the center of the rover is less than
+> the sum of their radii. If the center of the rover enters a crater,
+> it falls in and explodes. If a vehicle is caught by a Martian, it
+> is destroyed and its remains are sacrificed to the Gods of Barsoom,
+> of whom it is best not to speak further.</p>
+177,178c173,174
+< <hr size="2" width="80%"></div>
+< <div class="center"><img src="task-1.0_files/task002.png"></div>
+---
+> <hr width="80%" size="2"></div>
+> <div class="center"><img src="task002.png"></div>
+180,181c176
+< <table cellpadding="0" cellspacing="6">
+< <tbody>
+---
+> <table cellspacing="6" cellpadding="0">
+186d180
+< </tbody>
+191c185
+< <hr size="2" width="80%"></div>
+---
+> <hr width="80%" size="2"></div>
+210d203
+< <tbody>
+218d210
+< </tbody>
+222,225c214,218
+< rover is braking The rover’s acceleration and braking rates are not
+< known, although they can be determined by experiment. The effect of
+< drag is to limit the maximum speed of the rover; this value is
+< known and is communicated as part of the initial message.</p>
+---
+> rover is braking. The rover’s acceleration and braking rates are
+> not known, although they can be determined by experiment. The
+> effect of drag is to limit the maximum speed of the rover. The
+> maximum speed is known (it is communicated as part of the initial
+> message), but the drag coefficient is not known.</p>
+237c230
+< addresses the mechanics of steering in greater detail.</p>
+---
+> addresses the mechanics of steering messages in greater detail.</p>
+245c238
+< given a server IP address and port number as command-line arguments
+---
+> given a server hostname and port number as command-line arguments
+487,489c480,482
+< <hr size="2" width="80%"></div>
+< <div class="center"><img src="task-1.0_files/task003.png"></div>
+< <div class="center"><img src="task-1.0_files/task004.png"></div>
+---
+> <hr width="80%" size="2"></div>
+> <div class="center"><img src="task003.png"></div>
+> <div class="center"><img src="task004.png"></div>
+491,492c484
+< <table cellpadding="0" cellspacing="6">
+< <tbody>
+---
+> <table cellspacing="6" cellpadding="0">
+497d488
+< </tbody>
+502c493
+< <hr size="2" width="80%"></div>
+---
+> <hr width="80%" size="2"></div>
+511d501
+< <tbody>
+524d513
+< </tbody>
+529c518,523
+< latency (less than 20 milliseconds) in processing the commands.</p>
+---
+> latency (less than 20 milliseconds) in processing the commands. The
+> controller may send messages as often as it likes, although
+> flooding the network can negatively affect performance. We
+> recommend only sending messages in response to telemetry data,
+> although you may need a sequence of messages to reach the desired
+> control state.</p>
+540,542d533
+< <p>A run is a simulation unit wherein a client receives an initial
+< message, attempts to reach home base, and finishes with either
+< success or failure.</p>
+569c560
+< <i>heats</i>. A heat consists of all active competitors being
+---
+> <i>heats</i>. A heat consists of all remaining competitors being
+639,641c630,638
+< <p>Your tarball may include other files as well. The structure of a
+< contest entry is illustrated in Figure&nbsp;<a href=
+< "#fig:submit">4</a>.</p>
+---
+> <p>Your tarball may include other files as well, including code for
+> general-purpose third-party libraries, with your submission as long
+> as your <tt>README</tt> enumerates those libraries. Teams may not
+> use code written by other teams working on the contest as a
+> “library.” Only generic libraries, <i>e.g.</i>, one that provides
+> matrix operations, may be used. Teams who use libraries as a means
+> of sharing code with one another will be disqualified.</p>
+> <p>The structure of a contest entry is illustrated in
+> Figure&nbsp;<a href="#fig:submit">4</a>.</p>
+644,645c641,642
+< <hr size="2" width="80%"></div>
+< <div class="center"><img src="task-1.0_files/task005.png"></div>
+---
+> <hr width="80%" size="2"></div>
+> <div class="center"><img src="task005.png"></div>
+647,648c644
+< <table cellpadding="0" cellspacing="6">
+< <tbody>
+---
+> <table cellspacing="6" cellpadding="0">
+653d648
+< </tbody>
+658c653
+< <hr size="2" width="80%"></div>
+---
+> <hr width="80%" size="2"></div>
+676c671,672
+< if test -x bin/install ; then<br>
+---
+> if test -r bin/install ; then<br>
+> chmod +x bin/install<br>
+678a675
+> chmod +x bin/run<br>
+728a726,741
+> <dt class="dt-description"><b>Version 1.1</b></dt>
+> <dd class="dd-description">Changed installation behavior to make
+> the <tt>install</tt> and <tt>run</tt> scripts executable before
+> running it.</dd>
+> <dt class="dt-description"><b>Version 1.2</b></dt>
+> <dd class="dd-description">Correction in Section&nbsp;<a href=
+> "#sec:protocol">3</a>: “IP address” changed to “hostname.”</dd>
+> <dt class="dt-description"><b>Version 1.3</b></dt>
+> <dd class="dd-description">Fixed small text typo. Clarified the
+> fact that drag is unknown. Fixed installation behavior description.
+> Clarified falling and crashing behavior.</dd>
+> <dt class="dt-description"><b>Version 1.4</b></dt>
+> <dd class="dd-description">Removed erroneous definition of a run
+> from Section&nbsp;<a href="#sec:scoring">4</a>. Stated that generic
+> third-party libraries <em>may</em> be submitted in
+> Section&nbsp;<a href="#sec:submission">5</a>.</dd>
