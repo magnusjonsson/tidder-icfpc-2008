@@ -3,7 +3,7 @@
 ; vec2 models mathematical 2d vectors, i.e. they represent either a point or a
 ; velocity in the plane.
 
-(provide make-vec2 vec2? vec2-x vec2-y
+(provide vec2 make-vec2 vec2? vec2-x vec2-y
          vec2- vec2+
          vec2-length vec2-length-squared
          vec2-dot-product
@@ -17,11 +17,14 @@
          angle->vec2
          angle-deg->vec2
          curve-angle
+         vec2-origin
          )
 
 (require "angles.scm")
 
 (define-struct vec2 (x y) #:transparent)
+
+(define vec2-origin (make-vec2 0 0))
 
 (define (binary-vec2+ a b)
   (make-vec2 (+ (vec2-x a) (vec2-x b)) (+ (vec2-y a) (vec2-y b))))

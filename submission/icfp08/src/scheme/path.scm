@@ -80,3 +80,31 @@
                                             (obj-pos blocker) (safe-radius blocker) direction))
                   (target-on-blocker (cdr t)))
              (safe-point pos target-on-blocker blocker)))))))
+
+(define-struct arc (host-obj ccw-obj cw-obj) #:transparent)
+
+(define-struct directed-arc (arc direction) #:transparent)
+
+
+(define (tangent-info->directed-arc tangent)
+  (match tangent
+    ((list obj dir tangent-point)
+     (let ((arc (make-arc obj 
+                          ; todo: figure out what delelimits the arc
+                          #f #f)))
+       (make-directed-arc arc dir)))))
+
+(define (reachable-states state)
+  (match state
+    ((struct vec2 (0 0)) ; home
+     (list)) ; don't go anywhere after coming home
+    ((struct vec2 (_ _)) ; our rover
+     (if (not (line-obstructed? state vec2-origin))
+         ; if we can go home directly, don't even consider doing something else
+         (list vec2-origin)
+         ; otherwise find reachable directed arcs
+         (let ((reachable-tangents (unobstructed-point-obj-tangents state)))
+           (map tangent-info->directed-arc reachable-tangents))))
+    ((struct directed-arc (arc direction))
+     ; todo: implement
+     '())))

@@ -3,18 +3,24 @@
 (require "messages.scm")
 (require "vec2.scm")
 (require "intersect.scm")
+(require "tangent.scm")
 (require "misc-syntax.ss")
 
 (provide remember-objects remember-object
          print-remembered clear-remembered
          first-hit-obj first-hit-time
-         first-curve-hit-angle first-curve-hit-obj)
+         first-curve-hit-angle first-curve-hit-obj
+         line-obstructed?
+         unobstructed-point-obj-tangents)
 
 ; We store all objects seen.
 ; The value corresponding to each object is a parent object as in the Union-Find algorithm.
 ;
 ; The Union-Find algorithm is used to merge groups.
 (define remembered (make-hash))
+
+(define (reset)
+  (set! remembered (make-hash)))
 
 (define (remember-objects objects)
   (for-each remember-object objects))
@@ -66,6 +72,10 @@
 (define (clear-remembered)
   (set! remembered (make-hash)))
 
+(define (line-obstructed? p0 p1)
+  (let ((t (first-hit-time p0 (vec2- p1 p0))))
+    (and t (< t 1))))
+
 (define (first-hit-time origin ray)
   (let ((b (first-hit-obj origin ray)))
     (and b (ray-circle-intersection-first-time origin ray (obj-pos b) (obj-radius b)))))
@@ -116,3 +126,23 @@
 (define (objects-overlap? o1 o2)
   (<= (vec2-distance (obj-pos o1) (obj-pos o2))
       (+ (obj-radius o1) (obj-radius o2))))
+
+
+(define (unobstructed-point-obj-tangents point)
+  (let ((result '()))
+    (define (consider obj dir)
+      (let ((tangent-point (tangent point (obj-pos obj) (obj-radius obj) (- dir))))
+        (unless (line-obstructed? point tangent-point)
+          (push! result (list obj dir tangent-point)))))
+    (hash-for-each remembered
+                   (lambda (obj _)
+                     (consider obj -1)
+                     (consider obj 1)))
+    result))
+
+(define (test)
+  (reset)
+  (remember-objects (list (make-obj 'crater (make-vec2 10 0) 1)))
+  (printf "~a~n~n" (unobstructed-point-obj-tangents (make-vec2 0 0)))
+  (remember-objects (list (make-obj 'crater (make-vec2 5 1) 1)))
+  (printf "~a~n~n" (unobstructed-point-obj-tangents (make-vec2 0 0))))
