@@ -7,6 +7,7 @@
 (require mzlib/pregexp)
 (require scheme/match)
 (require (only-in rnrs/base-6 assert))
+(require "vec2.scm")
 
 (define chars '())
 
@@ -40,11 +41,11 @@
                      ((#\-) 0)
                      ((#\r) 1)
                      ((#\R) 2)))
-    (define (vehicle) (msg:make-vehicle (n) (n) (n) (n)))
+    (define (vehicle) (msg:make-vehicle (make-vec2 (n) (n)) (n) (n)))
     (define (seen) (match (pop! tokens)
-                     ("b" (msg:make-object 'boulder (n) (n) (n)))
-                     ("c" (msg:make-object 'crater (n) (n) (n)))
-                     ("h" (msg:make-object 'home-base (n) (n) (n)))
+                     ("b" (msg:make-object 'boulder (make-vec2 (n) (n)) (n)))
+                     ("c" (msg:make-object 'crater (make-vec2 (n) (n)) (n)))
+                     ("h" (msg:make-object 'home-base (make-vec2 (n) (n)) (n)))
                      ("m" (vehicle))))
     (define (many x)
       (if (not (null? tokens))

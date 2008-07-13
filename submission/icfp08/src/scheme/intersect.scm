@@ -1,8 +1,16 @@
 #lang scheme
 
 (provide line-intersects-circle?)
+(require "vec2.scm")
 
-(define (line-intersects-circle? line-x0 line-y0 line-x1 line-y1 circle-x circle-y r)
+(define (line-intersects-circle? p0 p1 center radius)
+  (line-intersects-circle?-raw
+   (vec2-x p0) (vec2-y p0)
+   (vec2-x p1) (vec2-y p1)
+   (vec2-x center) (vec2-y center)
+   radius))   
+
+(define (line-intersects-circle?-raw line-x0 line-y0 line-x1 line-y1 circle-x circle-y r)
   (when (> line-x0 line-x1)
     (set!-values (line-x0 line-x1) (values line-x1 line-x0))
     (set!-values (line-y0 line-y1) (values line-y1 line-y0)))

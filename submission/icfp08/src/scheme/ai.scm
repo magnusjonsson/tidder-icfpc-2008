@@ -10,6 +10,7 @@
 (require "misc-syntax.ss")
 (require "intersect.scm")
 (require "tangent.scm")
+(require "vec2.scm")
 
 (provide handle-message)
 
@@ -21,8 +22,8 @@
 
 (define (preprocess-object o)
   (match o
-    ((struct object ('boulder x y r))
-     ('boulder (make-object 'boulder x y (+ (r 1/2)))))
+    ((struct object ('boulder pos r))
+     ('boulder (make-object 'boulder pos (+ (r 1/2)))))
     (_ o)))
 
 (define (handle-message m)
@@ -40,16 +41,14 @@
     ((failure? m)
      (control-clear))
     ((telemetry? m)
-     (remember-objects (telemetry-seen m))
+     (remember-objects (map preprocess-object (telemetry-seen m)))
      ;(print-remembered)
      (let* ((t (telemetry-time m))
             (self (telemetry-vehicle m))
-            (x (vehicle-x self))
-            (y (vehicle-y self))
+            (pos (vehicle-pos self))
             (dir (vehicle-dir self))
             (speed (vehicle-speed self))
-            (target-x 0)
-            (target-y 0)
+            (target (make-vec2 0 0))
             (last-blocking-obj #f))
 
        (define (target-blocked?)
@@ -57,13 +56,13 @@
          (let/ec return
            (hash-for-each remembered
                           (lambda (obj junk)
-                            (let ((r (safe-radius obj)))
-                              ; if there's an intersection that happens before
-                              ; target-distance, (return obj)
-                              (unless (equal? obj last-blocking-obj)
-                                (when (line-intersects-circle? x y target-x target-y
-                                                               (object-x obj) (object-y obj) r)
-                                  (return obj))))))
+                            ; if there's an intersection that happens before
+                            ; target-distance, (return obj)
+                            (unless (equal? obj last-blocking-obj)
+                              (when (line-intersects-circle? pos target
+                                                             (object-pos obj)
+                                                             (safe-radius obj))
+                                (return obj)))))
            ; no object is blocking
            #f))
        
@@ -74,17 +73,12 @@
              ; adjust target to be the left tangent point
              ; of b
              (set! last-blocking-obj b)
-             (let-values (((tx ty ta td)
-                           (tangent x y
-                                    (object-x b) (object-y b) (safe-radius b)
-                                    1)))
-               (set!-values (target-x target-y) (values tx ty)))
+             (set! target (tangent pos (object-pos b) (safe-radius b) 1))
              (avoidance-loop))))
        (printf "~n")
-       (printf "target: ~a ~a~n" target-x target-y)
+       (printf "target: ~a ~n" target)
 
-       (let* (;(target-distance (sqrt (+ (sqr x) (sqr y))))
-              (target-dir (atan-deg (- target-y y) (- target-x x)))
+       (let* ((target-dir (vec2-angle-deg (vec2- target pos)))
               (dir-target-diff (deg- target-dir dir))
               (steer (* 2 dir-target-diff))
               (accel (cond

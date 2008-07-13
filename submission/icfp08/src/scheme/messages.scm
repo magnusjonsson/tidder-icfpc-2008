@@ -18,14 +18,14 @@
                           )
   #:transparent)
 
-(define-struct vehicle (x y ; meters
+(define-struct vehicle (pos ; vec2 meters
                         dir ; degrees
                         speed ; meters/second
                         )
   #:transparent)
 
 (define-struct object (kind ; (or 'boulder 'crater 'home-base)
-                       x y ; meters
+                       pos ; vec2 meters
                        radius ; meters
                        )
   #:transparent)

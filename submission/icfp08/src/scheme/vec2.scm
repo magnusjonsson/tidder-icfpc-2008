@@ -7,7 +7,12 @@
          vec2- vec2+
          vec2-length vec2-length-squared
          vec2-rotate-ccw-90
-         vec2-rotate-cw-90)
+         vec2-rotate-cw-90
+         vec2-angle-rad
+         vec2-angle-deg
+         )
+
+(require "angles.scm")
 
 (define-struct vec2 (x y) #:transparent)
 
@@ -49,4 +54,10 @@
 
 (define (vec2-normalize a)
   (vec2-scale (/ (vec2-length a)) a))
-  
+
+(define (vec2-angle-rad a)
+  (atan (vec2-y a) (vec2-x a)))
+
+(define (vec2-angle-deg a)
+  (atan-deg (vec2-y a) (vec2-x a)))
+

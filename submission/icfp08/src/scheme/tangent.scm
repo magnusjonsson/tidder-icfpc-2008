@@ -1,12 +1,21 @@
 #lang scheme
 
 (require "angles.scm")
+(require "vec2.scm")
 
 (provide tangent tangent2)
 
+(define (tangent robot circle radius direction)
+  (let-values (((x y a d)
+                (tangent-raw (vec2-x robot) (vec2-y robot)
+                             (vec2-x circle) (vec2-y circle)
+                             radius
+                             direction)))
+    (make-vec2 x y)))
+
 ; returns (values x y angle distance) for the tangent point
 ; direction is -1 for right, 1 for left
-(define (tangent robot-x robot-y circle-x circle-y r direction)
+(define (tangent-raw robot-x robot-y circle-x circle-y r direction)
   (let* ((dx (- circle-x robot-x))
          (dy (- circle-y robot-y))
          (d (sqrt (+ (* dx dx) (* dy dy))))
@@ -19,18 +28,26 @@
          (tangent-y (+ (* (sin tangent-angle) tangent-distance) robot-y)))
     (values tangent-x tangent-y (rad->deg tangent-angle) tangent-distance)))
 
-(define (tangent2 robot-x robot-y circle-x circle-y r direction)
+(define (tangent2 robot circle radius direction)
+  (let-values (((x y a d)
+                (tangent2-raw (vec2-x robot) (vec2-y robot)
+                              (vec2-x circle) (vec2-y circle)
+                              radius
+                              direction)))
+    (make-vec2 x y)))
+
+(define (tangent2-raw robot-x robot-y circle-x circle-y r direction)
   (let* ((dx (- circle-x robot-x))
          (dy (- circle-y robot-y))
          (d2 (+ (* dx dx) (* dy dy)))
-         (d  (sqrt d2)) ; avoid producing imaginary numbers
+         (d  (sqrt d2))
          (r2 (* r r)))
     (if (<= d2 r2)
         (let ((tx (+ robot-x (* -1 dy direction)))
               (ty (+ robot-y (* dx direction))))
           (values tx ty #f d))
         (let* ((t2 (- d2 r2))
-               (t  (sqrt t2)) ; avoid producing imaginary numbers
+               (t  (sqrt t2))
                (cos (/ t d))
                (sin (/ r d))
                (tx (+ robot-x (* cos (+ (* dx cos) (* -1 dy direction sin)))))
