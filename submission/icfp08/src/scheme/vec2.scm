@@ -15,6 +15,8 @@
          vec2-distance vec2-distance-squared
          angle->vec2
          angle-deg->vec2
+         vec2-normalize
+         curve-angle
          )
 
 (require "angles.scm")
@@ -79,3 +81,10 @@
 (define (angle-deg->vec2 deg)
   (angle->vec2 (deg->rad deg)))
 
+(define (deg-normalize-positive deg)
+  (- deg (* 360 (floor (/ deg 360)))))
+
+(define (curve-angle curve-start curve-center curve-end direction)
+  (let* ((angle1 (vec2-angle-deg (vec2- curve-start curve-center)))
+         (angle2 (vec2-angle-deg (vec2- curve-end curve-center))))
+    (deg-normalize-positive (* direction (- angle2 angle1)))))

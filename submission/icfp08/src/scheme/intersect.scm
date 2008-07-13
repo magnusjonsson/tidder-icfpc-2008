@@ -87,6 +87,34 @@
          (list (/ (- b root) a)
                (/ (+ b root) a)))))))
 
+; A curve is like a ray, but it goes along a circle arc. it's defined by a
+; start-point, a curve-center and a direction (1 for ccw, -1 for cw).
+; Returns the relative angle of the first intersection, or #f.
+; The relative angle is always a positive number that tells how many degrees
+; along the curve circle you have to go in the specified direction to hit
+; the obstacle.
+(define (curve-circle-intersection-angle curve-start curve-center direction
+                                         obj-center obj-radius)
+  ; see http://local.wasp.uwa.edu.au/~pbourke/geometry/2circle/ for formulas
+  (let* ((curve-radius (vec2-length (vec2- curve-start curve-center)))
+         (d-vec (vec2- obj-center curve-center))
+         (d-squared (vec2-length-squared d-vec))
+         (d (sqrt d-squared)))
+    (and (< d (+ obj-radius curve-radius)) ; circles must intersect
+         (> d (abs (- curve-radius obj-radius))) ; and not contain each other
+         (let* ((s (+ (sqr curve-radius) (- (sqr obj-radius)) d-squared))
+                (a (/ s (* 2 d)))
+                (p2 (vec2+ curve-center (vec2-scale (/ a d) d-vec)))
+                
+                (h (sqrt (- (sqr curve-radius) (sqr a))))
+                (h-vec (vec2-scale (/ h d) (vec2-rotate-ccw-90 d-vec)))
+                
+                (p3-1 (vec2+ p2 h-vec))
+                (p3-2 (vec2- p2 h-vec))
+                
+                (angle1 (curve-angle curve-start curve-center p3-1 direction))
+                (angle2 (curve-angle curve-start curve-center p3-2 direction)))
+           (min angle1 angle2)))))
 
 (define (test)
   (define (should-intersect p0 p1 c r)
@@ -95,3 +123,14 @@
   (should-intersect (make-vec2 -10 0) (make-vec2 10 0) (make-vec2 0 0) 5)
   (should-intersect (make-vec2 0 -10) (make-vec2 0 10) (make-vec2 0 0) 5)
   )
+
+(define (test2)
+  (define (t d)
+    (let ((r (curve-circle-intersection-angle (make-vec2 50 10)
+                                              (make-vec2 50 20) d
+                                              (make-vec2 60 30) 10)))
+      (printf "~a~n" r)
+      r))
+  (define (about-eq? a b) (< (abs (- a b)) 0.001))
+  (assert (about-eq? (t 1) 90.0))
+  (assert (about-eq? (t -1) 180)))
