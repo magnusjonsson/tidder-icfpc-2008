@@ -1,6 +1,6 @@
 #lang mzscheme
 
-(provide push! pop! mergesort! while until min! max! inc! dec! dotimes)
+(provide push! pop! mergesort! while until min! max! inc! dec! dotimes swap!)
 
 (define-syntax push!
   (syntax-rules ()
@@ -58,3 +58,7 @@
     ((_ (var num-times) body ...) (do ((var 0 (add1 var)))
                                     ((>= var num-times))
                                     body ...))))
+
+(define-syntax swap!
+  (syntax-rules ()
+    ((_ place1 place2) (set!-values (place1 place2) (values place2 place1)))))

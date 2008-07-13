@@ -42,7 +42,7 @@
      (control-clear))
     ((telemetry? m)
      (remember-objects (map preprocess-object (telemetry-seen m)))
-     ;(print-remembered)
+     (printf "remembered objects: ~a~n" (hash-count remembered))
      (let* ((t (telemetry-time m))
             (self (telemetry-vehicle m))
             (pos (vehicle-pos self))
@@ -59,9 +59,9 @@
                             ; if there's an intersection that happens before
                             ; target-distance, (return obj)
                             (unless (equal? obj last-blocking-obj)
-                              (when (line-intersects-circle? pos target
-                                                             (object-pos obj)
-                                                             (safe-radius obj))
+                              (when (line-intersects-circle?-alt pos target
+                                                                 (object-pos obj)
+                                                                 (safe-radius obj))
                                 (return obj)))))
            ; no object is blocking
            #f))
