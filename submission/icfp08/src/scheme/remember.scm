@@ -7,7 +7,8 @@
 
 (provide remember-objects remember-object
          print-remembered clear-remembered
-         first-hit-obj first-hit-time)
+         first-hit-obj first-hit-time
+         first-curve-hit-angle first-curve-hit-obj)
 
 ; We store all objects seen.
 ; The value corresponding to each object is a parent object as in the Union-Find algorithm.
@@ -94,8 +95,23 @@
                                (obj-pos obj) (obj-radius obj))))
                        (when t
                          (unless (and best-angle (< best-angle t))
-                           (set! best-angle angle))))))
+                           (set! best-angle t))))))
     best-angle))
+
+(define (first-curve-hit-obj curve-start curve-center direction)
+  (let ((best-angle #f)
+        (best-obj #f))
+    ; possible optimization: only check adjacent obstacles
+    (hash-for-each remembered
+                   (lambda (obj _)
+                     (let ((t (curve-circle-intersection-angle
+                               curve-start curve-center direction
+                               (obj-pos obj) (obj-radius obj))))
+                       (when t
+                         (unless (and best-angle (< best-angle t))
+                           (set! best-angle t)
+                           (set! best-obj obj))))))
+    best-obj))
 
 (define (objects-overlap? o1 o2)
   (<= (vec2-distance (obj-pos o1) (obj-pos o2))
