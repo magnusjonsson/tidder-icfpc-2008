@@ -80,11 +80,16 @@
        (printf "target: ~a ~n" target)
 
        (let* ((target-dir (vec2-angle-deg (vec2- target pos)))
+              (target-distance (vec2-distance target pos))
               (dir-target-diff (deg- target-dir dir))
               (steer (* 2 dir-target-diff))
+              ; don't accelerate towards the side if you are
+              ; close to the target
+              (accel-angle (min 120 (* 10 target-distance)))
+              
               (accel (cond
                        ; pedal to the medal as long as we're not *completely* off course!
-                       ((< (abs dir-target-diff)  120) 1)
+                       ((< (abs dir-target-diff) accel-angle) 1)
                        ((< (abs dir-target-diff)  120) 0)
                        (else -1))))
          (control-set-state-deg/sec accel steer))))))
