@@ -1,7 +1,13 @@
 #lang scheme
 
 (require "libraries/search/astar.ss")
+(require "vec2.scm")
 (require "remember.scm")
+(require "intersect.scm")
+(require "messages.scm")
+(require "tangent.scm")
+
+(provide safety-margin compute-target)
 
 ; The idea is to store a "planned path", i.e. the path we will follow if no
 ; information arrives, and to recompute it whenever the planned path turns out
@@ -16,17 +22,28 @@
 ; are circled around, plus the direction in which we avoid the obstacles.
 ; The empty list corresponds to the path that goes directly to the end point.
 
-(provide make-path-node path-node? path-node-obstacle path-node-direction
-         planned-path update-path)
+(define safety-margin 1.0) ; 100% of vehicle's width
 
-; direction is either 1 if we pass to the left of the obstacle, -1 if to the
-; right.
-(define-struct path-node (obstacle direction))
+(define (safe-radius o)
+  (+ safety-margin
+     (obj-radius o)))
 
-(define planned-path (list))
-
-(define (update-path obstacle)
-  ; TODO: check if obstacle blocks our path
-    
-  ; for now: simply drive around the obstacle left
-  (set! planned-path (cons (make-path-node obstacle -1) planned-path)))
+(define (compute-target pos)
+  ; pos = position of our rover
+  (let ((target (make-vec2 0 0))
+        (visited (make-hash)))
+    (let avoidance-loop ()
+      (printf ".")
+      (let* ((ray (vec2- target pos))
+             (b (first-hit-obj pos ray)))
+        (when (and b (not (hash-ref visited b #f)))
+          (hash-set! visited b #t)
+          (let ((t (ray-circle-intersection-first-time
+                    pos ray
+                    (obj-pos b) (obj-radius b))))
+            (when (< t 1)
+              ; adjust target to be the left tangent point
+              ; of b
+              (set! target (tangent pos (obj-pos b) (safe-radius b) 1))
+              (avoidance-loop))))))
+    target))
