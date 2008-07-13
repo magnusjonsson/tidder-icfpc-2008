@@ -13,6 +13,8 @@
          vec2-angle-rad
          vec2-angle-deg
          vec2-distance vec2-distance-squared
+         angle->vec2
+         angle-deg->vec2
          )
 
 (require "angles.scm")
@@ -70,4 +72,10 @@
 
 (define (vec2-distance a b)
   (sqrt (vec2-distance-squared a b)))
+
+(define (angle->vec2 rad)
+  (make-vec2 (cos rad) (sin rad)))
+
+(define (angle-deg->vec2 deg)
+  (angle->vec2 (deg->rad deg)))
 
