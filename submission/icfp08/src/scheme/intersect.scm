@@ -19,7 +19,7 @@
                     (lh (/ (+ (* a circle-y) circle-x (* a b -1))
                            (+ 1 (sqr a)))))
                 (or (<= line-x0 (- lh rh) line-x1)
-                    (<= line-x1 (+ lh rh) line-x1)))))))
+                    (<= line-x0 (+ lh rh) line-x1)))))))
 
 ; returns the first intersection or (values #f #f)
 (define (ray-circle origin-x origin-y ray-dx ray-dy
