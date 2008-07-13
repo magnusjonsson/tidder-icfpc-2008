@@ -12,7 +12,9 @@
   (for-each remember-object objects))
 
 (define (remember-object o)
-  (when (and (obj? o) (not (hash-ref remembered o #f)))
+  (when (and (obj? o)
+             (not (equal? 'home-base (obj-kind o)))
+             (not (hash-ref remembered o #f)))
     (hash-set! remembered o #t)
     ;update path here
     ))
