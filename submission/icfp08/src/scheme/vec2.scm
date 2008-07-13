@@ -8,6 +8,7 @@
          vec2-length vec2-length-squared
          vec2-dot-product
          vec2-scale
+         vec2-normalize
          vec2-rotate-ccw-90
          vec2-rotate-cw-90
          vec2-angle-rad
@@ -15,7 +16,6 @@
          vec2-distance vec2-distance-squared
          angle->vec2
          angle-deg->vec2
-         vec2-normalize
          curve-angle
          )
 
