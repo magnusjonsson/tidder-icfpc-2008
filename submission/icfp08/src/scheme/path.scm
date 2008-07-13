@@ -88,7 +88,26 @@
 (define (arc-contains-point arc point)
   ; is this point on the arc's host object inside the arc?
   ; todo: implement
-  #t)
+  (define (hit dir obj)
+    (curve-circle-intersection-angle
+     point (obj-pos (arc-host-obj arc)) dir (obj-pos obj) (obj-radius obj)))
+  (let ((ccw-angle-to-ccw-obj (hit 1 (arc-ccw-obj arc)))
+        (ccw-angle-to-cw-obj (hit 1 (arc-cw-obj arc)))
+        (cw-angle-to-ccw-obj (hit -1 (arc-ccw-obj arc)))
+        (cw-angle-to-cw-obj (hit -1 (arc-cw-obj arc))))
+    ; check if cw-obj is hit first if we go cw, and if ccw-obj is hit first if
+    ; we go ccw. if outside the arc, either the same object is hit twice, or
+    ; they are hit in the wrong order, so the test fails.
+    (and (<= ccw-angle-to-ccw-obj ccw-angle-to-cw-obj)
+         (<= cw-angle-to-cw-obj cw-angle-to-ccw-obj))))
+
+(define (test-arc-contains-point)
+  (define obj1 (make-obj 'boulder (make-vec2 0 0) 15))
+  (define obj2 (make-obj 'boulder (make-vec2 10 0) 15))
+  (define obj3 (make-obj 'boulder (make-vec2 20 0) 15))
+  (define arc (make-arc obj2 obj1 obj3))
+  (assert (arc-contains-point arc (make-vec2 10 15)))
+  (assert (not (arc-contains-point arc (make-vec2 10 -15)))))
 
 (define-struct directed-arc (arc direction) #:transparent)
 
