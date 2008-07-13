@@ -73,15 +73,15 @@
 (define (clear-remembered)
   (set! remembered (make-hash)))
 
-(define (line-obstructed? p0 p1 tabu-obj-list)
+(define (line-obstructed? p0 p1 (tabu-obj-list '()))
   (let ((t (first-hit-time p0 (vec2- p1 p0) tabu-obj-list)))
     (and t (< t 1))))
 
-(define (first-hit-time origin ray tabu-obj-list)
+(define (first-hit-time origin ray (tabu-obj-list '()))
   (let ((b (first-hit-obj origin ray tabu-obj-list)))
     (and b (ray-circle-intersection-first-time origin ray (obj-pos b) (obj-radius b)))))
 
-(define (first-hit-obj origin ray tabu-obj-list)
+(define (first-hit-obj origin ray (tabu-obj-list '()))
   (let ((best-time #f)
         (best-obj #f))
     (hash-for-each remembered
