@@ -1,9 +1,12 @@
 #lang scheme
 
-(provide rad->deg deg- normalize-deg unwrap-deg atan-deg)
+(provide rad->deg deg->rad deg- normalize-deg unwrap-deg atan-deg)
 
 (define (rad->deg rad)
   (* 180 (/ rad pi)))
+
+(define (deg->rad deg)
+  (* pi (/ deg 180)))
 
 (define (deg- d1 d2)
   (let ((diff (- d1 d2)))

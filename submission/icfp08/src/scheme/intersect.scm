@@ -1,6 +1,10 @@
 #lang scheme
 
-(provide line-intersects-circle? line-intersects-circle?-alt)
+(provide line-intersects-circle? line-intersects-circle?-alt
+         ray-circle-intersection-times
+         ray-circle-intersection-first-time
+         ray-circle-intersection-first-point
+         )
 (require "vec2.scm")
 (require "misc-syntax.ss")
 (require (only-in rnrs/base-6 assert))
@@ -30,7 +34,7 @@
                     (lh (/ (+ (* a circle-y) circle-x (* a b -1))
                            (+ 1 (sqr a)))))
                 (or (<= line-x0 (- lh rh) line-x1)
-                    (<= line-x0 (+ lh rh) line-x1)))))))
+                    (<= line-x1 (+ lh rh) line-x1)))))))
 
 (define (line-intersects-circle?-alt p0 p1 center radius)
   (ormap (lambda (time) (<= 0 time 1))
@@ -54,13 +58,19 @@
   (let-values (((a b c) (ray-circle-quadratic origin ray center radius)))
     (solve-quadratic a b c)))
 
-; returns the first intersection point or #f
-(define (ray-circle-first-intersection-point origin ray center radius)
+(define (ray-circle-intersection-first-time origin ray center radius)
   (ormap (lambda (time)
            (if (>= time 0)
-               (vec2+ origin (vec2-scale time ray))
+               time
                #f))
-         (ray-circle-intersection-times ray center radius)))
+         (ray-circle-intersection-times origin ray center radius)))
+
+  
+; returns the first intersection point or #f
+(define (ray-circle-intersection-first-point origin ray center radius)
+  (let ((time (ray-circle-intersection-first-time origin ray center radius)))
+    (and time
+         (vec2+ origin (vec2-scale time ray)))))
 
 (define (solve-quadratic a b c)
   (let* ((b (* -1/2 b))
