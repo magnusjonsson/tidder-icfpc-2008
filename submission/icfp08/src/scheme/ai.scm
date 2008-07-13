@@ -11,10 +11,12 @@
 (require "intersect.scm")
 (require "tangent.scm")
 (require "vec2.scm")
+(require (prefix-in speedometer- "speedometer.scm"))
+(require (prefix-in turnometer- "turnometer.scm"))
 
 (provide handle-message)
 
-(define safety-margin 2.5)
+(define safety-margin 1.0) ; 100% of vehicle's width
 
 (define (safe-radius o)
   (+ safety-margin
@@ -26,11 +28,37 @@
      (make-obj 'boulder pos (+ r 1/2)))
     (_ o)))
 
+(define max-sensor #f)
+
+(define last-dir-target-diff 0)
+
+(define (compute-target pos)
+  ; pos = position of our rover
+  (let ((target (make-vec2 0 0))
+        (visited (make-hash)))
+    (let avoidance-loop ()
+      (printf ".")
+      (let* ((ray (vec2- target pos))
+             (b (first-hit-obj pos ray)))
+        (when (and b (not (hash-ref visited b #f)))
+          (hash-set! visited b #t)
+          (let ((t (ray-circle-intersection-first-time
+                    pos ray
+                    (obj-pos b) (obj-radius b))))
+            (when (< t 1)
+              ; adjust target to be the left tangent point
+              ; of b
+              (set! target (tangent pos (obj-pos b) (safe-radius b) 1))
+              (avoidance-loop))))))
+    target))
+
+
 (define (handle-message m)
   ;(when (< (random) .1) (/ 0))
   ;(printf "~a~n" m)
   (cond
     ((init? m)
+     (set! max-sensor (init-max-sensor m))
      (control-init (init-max-turn m) (init-max-hard-turn m))
      (clear-remembered)
      )
@@ -43,53 +71,40 @@
      (control-clear))
     ((telemetry? m)
      (remember-objects (map preprocess-object (telemetry-seen m)))
-     (printf "remembered objects: ~a~n" (hash-count remembered))
      (let* ((t (telemetry-time m))
             (self (telemetry-vehicle m))
             (pos (vehicle-pos self))
             (dir (vehicle-dir self))
             (speed (vehicle-speed self))
-            (target (make-vec2 0 0))
-            (last-blocking-obj #f))
-
-       (define (target-blocked?)
-         ; return the object that blocks it or #f
-         (let/ec return
-           (hash-for-each remembered
-                          (lambda (obj junk)
-                            ; if there's an intersection that happens before
-                            ; target-distance, (return obj)
-                            (unless (equal? obj last-blocking-obj)
-                              (when (line-intersects-circle?-alt pos target
-                                                                 (obj-pos obj)
-                                                                 (safe-radius obj))
-                                (return obj)))))
-           ; no object is blocking
-           #f))
+            (target (compute-target pos)))
        
-       (let avoidance-loop ()
-         (printf ".")
-         (let ((b (target-blocked?)))
-           (when b
-             ; adjust target to be the left tangent point
-             ; of b
-             (set! last-blocking-obj b)
-             (set! target (tangent pos (obj-pos b) (safe-radius b) 1))
-             (avoidance-loop))))
        (printf "~n")
        (printf "target: ~a ~n" target)
+       (speedometer-update t pos)
+       (turnometer-update t dir)
 
        (let* ((target-dir (vec2-angle-deg (vec2- target pos)))
-              (target-distance (vec2-distance target pos))
+              ; search forwards to see at what point we will crash going forwards, if any.
+              (crash-distance (first-hit-time pos (angle-deg->vec2 dir)))
               (dir-target-diff (deg- target-dir dir))
               (steer (* 2 dir-target-diff))
-              ; don't accelerate towards the side if you are
-              ; close to the target
-              (accel-angle (min 120 (* 10 target-distance)))
-              
+              (wanted-speed (min
+                               ; drive slower when trying to turn
+                               (/ 320.0 (max 0.001 (abs steer)))
+                               ; drive slower when rotating
+                               (/ 320.0 (max 0.001 (abs (turnometer-value))))
+                               ; try to be able to stop in time if something shows up ahead.
+                               (* 2.0 (sqrt (max 0 (- (min (or crash-distance +inf.0)
+                                                           max-sensor)
+                                                      safety-margin))))
+                               ))
+              (speed (speedometer-value))
+                            
               (accel (cond
-                       ; pedal to the medal as long as we're not *completely* off course!
-                       ((< (abs dir-target-diff) accel-angle) 1)
-                       ((< (abs dir-target-diff)  120) 0)
+                       ((> wanted-speed speed) 1)
+                       ((> wanted-speed speed) 0)
                        (else -1))))
+         (printf "crash-distance: ~a~n" crash-distance)
+         (printf "accel: ~a steer: ~a  speed: ~a wanted-speed: ~a~n" accel steer speed wanted-speed)
+;         (printf "target-distance: ~a~n" target-distance)
          (control-set-state-deg/sec accel steer))))))
