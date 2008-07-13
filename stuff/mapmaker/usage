@@ -1,0 +1,4 @@
+python makemap.py <filename>
+
+Use config.py to change parameters.
+
