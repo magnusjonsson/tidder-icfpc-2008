@@ -4,6 +4,7 @@
          ray-circle-intersection-times
          ray-circle-intersection-first-time
          ray-circle-intersection-first-point
+         curve-circle-intersection-angle
          )
 (require "vec2.scm")
 (require "misc-syntax.ss")

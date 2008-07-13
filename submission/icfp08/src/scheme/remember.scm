@@ -84,6 +84,19 @@
                            (set! best-time t))))))
     best-obj))
 
+(define (first-curve-hit-angle curve-start curve-center direction)
+  (let ((best-angle #f))
+    ; possible optimization: only check adjacent obstacles
+    (hash-for-each remembered
+                   (lambda (obj _)
+                     (let ((t (curve-circle-intersection-angle
+                               curve-start curve-center direction
+                               (obj-pos obj) (obj-radius obj))))
+                       (when t
+                         (unless (and best-angle (< best-angle t))
+                           (set! best-angle angle))))))
+    best-angle))
+
 (define (objects-overlap? o1 o2)
   (<= (vec2-distance (obj-pos o1) (obj-pos o2))
       (+ (obj-radius o1) (obj-radius o2))))
