@@ -8,6 +8,7 @@
          vec2-length vec2-length-squared
          vec2-dot-product
          vec2-scale
+         vec2-normalize
          vec2-rotate-ccw-90
          vec2-rotate-cw-90
          vec2-angle-rad
