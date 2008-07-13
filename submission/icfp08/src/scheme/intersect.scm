@@ -30,7 +30,7 @@
                     (lh (/ (+ (* a circle-y) circle-x (* a b -1))
                            (+ 1 (sqr a)))))
                 (or (<= line-x0 (- lh rh) line-x1)
-                    (<= line-x1 (+ lh rh) line-x1)))))))
+                    (<= line-x0 (+ lh rh) line-x1)))))))
 
 (define (line-intersects-circle?-alt p0 p1 center radius)
   (ormap (lambda (time) (<= 0 time 1))
