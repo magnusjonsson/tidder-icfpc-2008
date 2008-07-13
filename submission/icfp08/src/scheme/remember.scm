@@ -12,7 +12,8 @@
          first-hit-obj first-hit-time
          first-curve-hit-angle first-curve-hit-obj
          line-obstructed?
-         unobstructed-point-obj-tangents)
+         unobstructed-point-obj-tangents
+         unobstructed-obj-obj-tangents)
 
 ; We store all objects seen.
 ; The value corresponding to each object is a parent object as in the Union-Find algorithm.
@@ -138,21 +139,19 @@
                      (consider obj 1)))
     result))
 
-(define (unobstructed-obj-obj-tangents obj1)
+(define (unobstructed-obj-obj-tangents obj1 dir1)
   (let ((result '()))
-    (define (consider obj2 dir1 dir2)
+    (define (consider obj2 dir2)
       (let ((tangent-points (circle-circle-tangent (obj-pos obj1) (obj-radius obj1) dir1
                                                    (obj-pos obj2) (obj-radius obj2) dir2)))
         (unless (line-obstructed? (car tangent-points) (cdr tangent-points) (list obj1 obj2))
-          (push! result (list obj1 dir1 (car tangent-points)
+          (push! result (list (car tangent-points)
                               obj2 dir2 (cdr tangent-points))))))
     (hash-for-each remembered
                    (lambda (obj2 _)
                      (when (not (equal? obj1 obj2))
-                       (consider obj2 -1 -1)
-                       (consider obj2  1  1)
-                       (consider obj2 -1  1)
-                       (consider obj2  1 -1))))
+                       (consider obj2 -1)
+                       (consider obj2  1))))
     result))
 
 (define (test)
@@ -181,21 +180,26 @@
 
 (define (test3)
   (define (pretty-list-of-length correct-length list)
-    (assert (= (length list) correct-length))
     (printf "list:~n")
-    (while (not (empty? list))
-           (printf "--> ~a~n" (pop! list))))
+    (dolist (i list)
+            (printf "--> ~a~n" i))
+    (assert (= (length list) correct-length)))
   (clear-remembered)
   (let ((o1 (make-obj 'crater (make-vec2 10 0) 1))
         (o2 (make-obj 'crater (make-vec2 0 0) 1)))
     (remember-objects (list o1 o2))
-    (pretty-list-of-length 4 (unobstructed-obj-obj-tangents o1))
-    (pretty-list-of-length 4 (unobstructed-obj-obj-tangents o2))
+    (pretty-list-of-length 2 (unobstructed-obj-obj-tangents o1 -1))
+    (pretty-list-of-length 2 (unobstructed-obj-obj-tangents o1 1))
+    (pretty-list-of-length 2 (unobstructed-obj-obj-tangents o2 -1))
+    (pretty-list-of-length 2 (unobstructed-obj-obj-tangents o2 1))
     
     ; put something between them
     (let ((o3 (make-obj 'crater (make-vec2 5 0) 2)))
       (remember-object o3)
-      (pretty-list-of-length 4 (unobstructed-obj-obj-tangents o1))
-      (pretty-list-of-length 4 (unobstructed-obj-obj-tangents o2))
-      (pretty-list-of-length 8 (unobstructed-obj-obj-tangents o3))
+      (pretty-list-of-length 2 (unobstructed-obj-obj-tangents o1 -1))
+      (pretty-list-of-length 2 (unobstructed-obj-obj-tangents o1 1))
+      (pretty-list-of-length 2 (unobstructed-obj-obj-tangents o2 -1))
+      (pretty-list-of-length 2 (unobstructed-obj-obj-tangents o2 1))
+      (pretty-list-of-length 4 (unobstructed-obj-obj-tangents o3 -1))
+      (pretty-list-of-length 4 (unobstructed-obj-obj-tangents o3 1))
       )))

@@ -7,6 +7,7 @@
 (require "messages.scm")
 (require "tangent.scm")
 (require (only-in rnrs/base-6 assert))
+(require "misc-syntax.ss")
 
 (provide safety-margin compute-target)
 
@@ -84,6 +85,11 @@
 
 (define-struct arc (host-obj ccw-obj cw-obj) #:transparent)
 
+(define (arc-contains-point arc point)
+  ; is this point on the arc's host object inside the arc?
+  ; todo: implement
+  #t)
+
 (define-struct directed-arc (arc direction) #:transparent)
 
 
@@ -104,21 +110,65 @@
          ; if we can go home directly, don't even consider doing something else
          (list vec2-origin)
          ; otherwise find reachable directed arcs
-         (let ((reachable-tangents (unobstructed-point-obj-tangents state)))
-           (map tangent-info->directed-arc reachable-tangents))))
+         (map tangent-info->directed-arc
+              (unobstructed-point-obj-tangents state))))
     ((struct directed-arc (arc direction))
-     ; todo: implement
-     '())))
+     (let ((obj1 (arc-host-obj arc)))
+       ; is home reachable from this arc?
+       (if (let ((tangent-point (tangent vec2-origin
+                                         (obj-pos obj1)
+                                         (obj-radius obj1)
+                                         direction)))
+             (and
+              (not (line-obstructed? tangent-point vec2-origin (list obj1)))
+              (arc-contains-point arc tangent-point)))
+           ; yes, so return it
+           (list vec2-origin)
+           ; otherwise find reachable directed arcs
+           (map tangent-info->directed-arc
+                (map (lambda (tangent-info)
+                       (match tangent-info
+                         ((list tp1 obj2 dir2 tp2)
+                          (list obj2 dir2 tp2))))
+                     (unobstructed-obj-obj-tangents obj1 direction))))))))
 
 (define (test)
   (define (pretty-list-of-length correct-length list)
-    (assert (= (length list) correct-length)))
+    (printf "list:~n")
+    (dolist (i list)
+            (printf "--> ~a~n" i))
+    (if (= (length list) correct-length)
+        (printf "length ok~n")
+        (begin (printf "length is: ~a, should be ~a~n" (length list) correct-length)
+               (assert #f))))
   (clear-remembered)
   (let ((o1 (make-obj 'crater (make-vec2 0 10) 1))
-        (o2 (make-obj 'crater (make-vec2 5 0) 1)))
+        (o2 (make-obj 'crater (make-vec2 5 0) 1))
+        (o3 (make-obj 'crater (make-vec2 0 5) 2)))
     (remember-object o1)
-    ; should only consider going directly home
+    (printf "should only consider going directly home~n")
     (pretty-list-of-length 1 (reachable-states (make-vec2 10 0)))
     (remember-object o2)
-    ; two directions to walk around o2, two directions to walk around o1
-    (pretty-list-of-length 4 (reachable-states (make-vec2 10 0)))))
+    (printf "two directions to walk around o2, two directions to walk around o1~n")
+    (pretty-list-of-length 4 (reachable-states (make-vec2 10 0)))
+    
+    (printf "reachability from arcs~n")
+    (printf "should go home:~n")
+    (pretty-list-of-length 1 (reachable-states (make-directed-arc
+                                                (make-arc o1 #f #f)
+                                                1)))
+    (pretty-list-of-length 1 (reachable-states (make-directed-arc
+                                                (make-arc o1 #f #f)
+                                                -1)))
+    (printf "placing an obstructing object~n")
+    (remember-object o3)
+    (printf "reachability from arcs again:~n")
+    (printf "two ways around o2, two ways around o3:~n")
+    (pretty-list-of-length 4 (reachable-states (make-directed-arc
+                                                (make-arc o1 #f #f)
+                                                1)))
+    (printf "one way around o2 (the other is obstructed by o3), two ways around o3:~n")
+    (pretty-list-of-length 3 (reachable-states (make-directed-arc
+                                                (make-arc o1 #f #f)
+                                                -1)))
+    ))
