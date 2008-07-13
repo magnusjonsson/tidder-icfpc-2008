@@ -16,7 +16,6 @@
          vec2-distance vec2-distance-squared
          angle->vec2
          angle-deg->vec2
-         vec2-normalize
          curve-angle
          )
 
