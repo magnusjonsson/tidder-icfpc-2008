@@ -11,10 +11,11 @@
 (require "intersect.scm")
 (require "tangent.scm")
 (require "vec2.scm")
+(require (prefix-in speedometer- "speedometer.scm"))
 
 (provide handle-message)
 
-(define safety-margin 2.5)
+(define safety-margin 1.0) ; 100% of vehicle's width
 
 (define (safe-radius o)
   (+ safety-margin
@@ -77,18 +78,24 @@
              (avoidance-loop))))
        (printf "~n")
        (printf "target: ~a ~n" target)
+       (speedometer-update t pos)
 
        (let* ((target-dir (vec2-angle-deg (vec2- target pos)))
               (target-distance (vec2-distance target pos))
               (dir-target-diff (deg- target-dir dir))
-              (steer (* 2 dir-target-diff))
-              ; don't accelerate towards the side if you are
-              ; close to the target
-              (accel-angle (min 120 (* 10 target-distance)))
-              
+              (steer (* 3 dir-target-diff))
+              ; don't accelerate so much if you are
+              ; turning and you are very close to the target
+              (wanted-speed (* 15 ; braveness factor
+                              (/ (max 1 (abs dir-target-diff)))
+                              target-distance
+                              ))
+              (speed (speedometer-value))
+                            
               (accel (cond
-                       ; pedal to the medal as long as we're not *completely* off course!
-                       ((< (abs dir-target-diff) accel-angle) 1)
-                       ((< (abs dir-target-diff)  120) 0)
+                       ((> wanted-speed speed) 1)
+                       ((> wanted-speed speed) 0)
                        (else -1))))
+         (printf "accel: ~a steer: ~a  speed: ~a wanted-speed: ~a~n" accel steer speed wanted-speed)
+         (printf "target-distance: ~a~n" target-distance)
          (control-set-state-deg/sec accel steer))))))
