@@ -23,7 +23,7 @@
 (define (preprocess-object o)
   (match o
     ((struct object ('boulder pos r))
-     ('boulder (make-object 'boulder pos (+ (r 1/2)))))
+     ('boulder (make-object 'boulder pos (+ r 1/2))))
     (_ o)))
 
 (define (handle-message m)
