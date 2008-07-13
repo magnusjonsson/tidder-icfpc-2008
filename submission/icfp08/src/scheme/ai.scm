@@ -32,6 +32,27 @@
 
 (define last-dir-target-diff 0)
 
+(define (compute-target pos)
+  ; pos = position of our rover
+  (let ((target (make-vec2 0 0))
+        (visited (make-hash)))
+    (let avoidance-loop ()
+      (printf ".")
+      (let* ((ray (vec2- target pos))
+             (b (first-hit-obj pos ray)))
+        (when (and b (not (hash-ref visited b #f)))
+          (hash-set! visited b #t)
+          (let ((t (ray-circle-intersection-first-time
+                    pos ray
+                    (obj-pos b) (obj-radius b))))
+            (when (< t 1)
+              ; adjust target to be the left tangent point
+              ; of b
+              (set! target (tangent pos (obj-pos b) (safe-radius b) 1))
+              (avoidance-loop))))))
+    target))
+
+
 (define (handle-message m)
   ;(printf "~a~n" m)
   (cond
@@ -54,25 +75,8 @@
             (pos (vehicle-pos self))
             (dir (vehicle-dir self))
             (speed (vehicle-speed self))
-            (target (make-vec2 0 0))
-            (considered-blocking-objs (make-hash)))
-
+            (target (compute-target pos)))
        
-       (let avoidance-loop ()
-         (printf ".")
-         (let* ((ray (vec2- target pos))
-                (b (first-hit-obj pos ray)))
-           (when (and b (not (hash-ref considered-blocking-objs b #f)))
-             (hash-set! considered-blocking-objs b #t)
-             (let ((t (ray-circle-intersection-first-time
-                       pos ray
-                       (obj-pos b) (obj-radius b))))
-               (when (< t 1)
-                 ; adjust target to be the left tangent point
-                 ; of b
-                 (set! target (tangent pos (obj-pos b) (safe-radius b) 1))
-                 (avoidance-loop))))))
-
        (printf "~n")
        (printf "target: ~a ~n" target)
        (speedometer-update t pos)
