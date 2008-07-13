@@ -117,6 +117,24 @@
                 (angle2 (curve-angle curve-start curve-center p3-2 direction)))
            (min angle1 angle2)))))
 
+(define (circle-circle-intersection c1 r1 c2 r2)
+  ; see http://local.wasp.uwa.edu.au/~pbourke/geometry/2circle/ for formulas
+  (let* ((d-vec (vec2- c2 c1))
+         (d-squared (vec2-length-squared d-vec))
+         (d (sqrt d-squared)))
+    (and (< d (+ r1 r2)) ; circles must intersect
+         (> d (abs (- r1 r2))) ; and not contain each other
+         (let* ((s (+ (sqr r1) (- (sqr r2)) d-squared))
+                (a (/ s (* 2 d)))
+                (p2 (vec2+ c1 (vec2-scale (/ a d) d-vec)))
+                
+                (h (sqrt (- (sqr r1) (sqr a))))
+                (h-vec (vec2-scale (/ h d) (vec2-rotate-ccw-90 d-vec)))
+                
+                (p3-1 (vec2+ p2 h-vec))
+                (p3-2 (vec2- p2 h-vec)))
+           (cons p3-1 p3-2)))))
+
 (define (test)
   (define (should-intersect p0 p1 c r)
     (assert (line-intersects-circle? p0 p1 c r))
@@ -135,3 +153,11 @@
   (define (about-eq? a b) (< (abs (- a b)) 0.001))
   (assert (about-eq? (t 1) 90.0))
   (assert (about-eq? (t -1) 180)))
+
+(define (test3)
+  (let ((r (circle-circle-intersection (make-vec2 50 20) 10
+                                       (make-vec2 60 30) 10))
+        (s (circle-circle-intersection (make-vec2 0 0) 3
+                                       (make-vec2 5 0) 4)))
+    (printf "(5, 3), (6, 2)? ~a~n" r)
+    (printf "(1.8, +- 2.4)? ~a~n" s)))

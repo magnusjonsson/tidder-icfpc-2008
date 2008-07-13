@@ -73,11 +73,8 @@
                                ))
               (speed (speedometer-value))
                             
-              (accel (cond
-                       ((> wanted-speed speed) 1)
-                       ((> wanted-speed speed) 0)
-                       (else -1))))
+              (accel (sgn (- wanted-speed speed))))
          (printf "crash-distance: ~a~n" crash-distance)
          (printf "accel: ~a steer: ~a  speed: ~a wanted-speed: ~a~n" accel steer speed wanted-speed)
-;         (printf "target-distance: ~a~n" target-distance)
+         ;(printf "target-distance: ~a~n" target-distance)
          (control-set-state-deg/sec accel steer))))))
