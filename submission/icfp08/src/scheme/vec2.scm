@@ -6,6 +6,8 @@
 (provide make-vec2 vec2? vec2-x vec2-y
          vec2- vec2+
          vec2-length vec2-length-squared
+         vec2-dot-product
+         vec2-scale
          vec2-rotate-ccw-90
          vec2-rotate-cw-90
          vec2-angle-rad
@@ -44,7 +46,7 @@
   (sqrt (vec2-length-squared v)))
 
 (define (vec2-dot-product a b)
-  (make-vec2 (* (vec2-x a) (vec2-x b)) (* (vec2-y a) (vec2-y b))))
+  (+ (* (vec2-x a) (vec2-x b)) (* (vec2-y a) (vec2-y b))))
 
 (define (vec2-rotate-ccw-90 a)
   (make-vec2 (- (vec2-y a)) (vec2-x a)))
