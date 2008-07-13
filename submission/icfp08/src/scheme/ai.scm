@@ -27,6 +27,7 @@
     (_ o)))
 
 (define (handle-message m)
+  ;(when (< (random) .1) (/ 0))
   ;(printf "~a~n" m)
   (cond
     ((init? m)

@@ -19,6 +19,7 @@
   
   (and (not (or (> line-x0 (+ circle-x r))  ; completely to the right of vertical segment
                 (< line-x1 (- circle-x r))  ; completely to the left of vertical segment
+                (= line-x0 line-x1)         ; zero-length line
                 ))
 
        (let* ((a (/ (- line-y0 line-y1) (- line-x0 line-x1)))
