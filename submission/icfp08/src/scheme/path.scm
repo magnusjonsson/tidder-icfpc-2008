@@ -6,6 +6,7 @@
 (require "intersect.scm")
 (require "messages.scm")
 (require "tangent.scm")
+(require (only-in rnrs/base-6 assert))
 
 (provide safety-margin compute-target)
 
@@ -108,3 +109,16 @@
     ((struct directed-arc (arc direction))
      ; todo: implement
      '())))
+
+(define (test)
+  (define (pretty-list-of-length correct-length list)
+    (assert (= (length list) correct-length)))
+  (clear-remembered)
+  (let ((o1 (make-obj 'crater (make-vec2 0 10) 1))
+        (o2 (make-obj 'crater (make-vec2 5 0) 1)))
+    (remember-object o1)
+    ; should only consider going directly home
+    (pretty-list-of-length 1 (reachable-states (make-vec2 10 0)))
+    (remember-object o2)
+    ; two directions to walk around o2, two directions to walk around o1
+    (pretty-list-of-length 4 (reachable-states (make-vec2 10 0)))))
