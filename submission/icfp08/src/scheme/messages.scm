@@ -14,7 +14,7 @@
                           acceleration-control ; -1; braking, 0: rolling, 1: accelerating
                           turn-control         ; -2: hard right, -1 right, 0 straight, 1 left, 2 hard left
                           vehicle ; vehicle
-                          seen ; (list (or object vehicle))
+                          seen ; (list (or obj vehicle))
                           )
   #:transparent)
 
@@ -24,10 +24,11 @@
                         )
   #:transparent)
 
-(define-struct object (kind ; (or 'boulder 'crater 'home-base)
-                       pos ; vec2 meters
-                       radius ; meters
-                       )
+; make-object clashes with some other library
+(define-struct obj (kind ; (or 'boulder 'crater 'home-base)
+                    pos ; vec2 meters
+                    radius ; meters
+                    )
   #:transparent)
 
 (define-struct success (time)

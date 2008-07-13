@@ -18,12 +18,12 @@
 
 (define (safe-radius o)
   (+ safety-margin
-     (object-radius o)))
+     (obj-radius o)))
 
 (define (preprocess-object o)
   (match o
-    ((struct object ('boulder pos r))
-     ('boulder (make-object 'boulder pos (+ r 1/2))))
+    ((struct obj ('boulder pos r))
+     (make-obj 'boulder pos (+ r 1/2)))
     (_ o)))
 
 (define (handle-message m)
@@ -60,7 +60,7 @@
                             ; target-distance, (return obj)
                             (unless (equal? obj last-blocking-obj)
                               (when (line-intersects-circle?-alt pos target
-                                                                 (object-pos obj)
+                                                                 (obj-pos obj)
                                                                  (safe-radius obj))
                                 (return obj)))))
            ; no object is blocking
@@ -73,7 +73,7 @@
              ; adjust target to be the left tangent point
              ; of b
              (set! last-blocking-obj b)
-             (set! target (tangent pos (object-pos b) (safe-radius b) 1))
+             (set! target (tangent pos (obj-pos b) (safe-radius b) 1))
              (avoidance-loop))))
        (printf "~n")
        (printf "target: ~a ~n" target)

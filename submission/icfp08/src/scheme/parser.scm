@@ -43,9 +43,9 @@
                      ((#\R) 2)))
     (define (vehicle) (msg:make-vehicle (make-vec2 (n) (n)) (n) (n)))
     (define (seen) (match (pop! tokens)
-                     ("b" (msg:make-object 'boulder (make-vec2 (n) (n)) (n)))
-                     ("c" (msg:make-object 'crater (make-vec2 (n) (n)) (n)))
-                     ("h" (msg:make-object 'home-base (make-vec2 (n) (n)) (n)))
+                     ("b" (msg:make-obj 'boulder (make-vec2 (n) (n)) (n)))
+                     ("c" (msg:make-obj 'crater (make-vec2 (n) (n)) (n)))
+                     ("h" (msg:make-obj 'home-base (make-vec2 (n) (n)) (n)))
                      ("m" (vehicle))))
     (define (many x)
       (if (not (null? tokens))
@@ -74,7 +74,7 @@
    "T 3450 aL -234.040 811.100 47.5 8.450 b -220.000 750.000 12.000 m -240.000 812.000 90.0 9.100 ;"
    (msg:make-telemetry 3450/1000 1 -2
                        (msg:make-vehicle -234.040 811.100 47.5 8.450)
-                       (list (msg:make-object 'boulder -220.000 750.000 12.000)
+                       (list (msg:make-obj 'boulder -220.000 750.000 12.000)
                              (msg:make-vehicle -240.000 812.000 90.0 9.100))))
   (->
    "I 50.000 40.000 100 2.000 3.000 5.000 60.0 90.0 ;"

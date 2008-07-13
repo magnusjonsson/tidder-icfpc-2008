@@ -1,6 +1,8 @@
 #lang scheme
 
-(require (prefix-in msg: "messages.scm"))
+(require "messages.scm")
+(require "vec2.scm")
+
 (provide remembered remember-objects remember-object
          print-remembered clear-remembered)
 
@@ -10,9 +12,7 @@
   (for-each remember-object objects))
 
 (define (remember-object o)
-  (when (and (msg:object? o)
-             (not (eq? (msg:object-kind o) 'home-base))
-             (not (hash-ref remembered o #f)))
+  (when (and (obj? o) (not (hash-ref remembered o #f)))
     (hash-set! remembered o #t)
     ;update path here
     ))
@@ -26,3 +26,8 @@
 
 (define (clear-remembered)
   (set! remembered (make-hash)))
+
+
+(define (objects-overlap? o1 o2)
+  (<= (vec2-distance (obj-pos o1) (obj-pos o2))
+      (+ (obj-radius o1) (obj-radius o2))))

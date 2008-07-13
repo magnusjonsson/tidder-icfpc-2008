@@ -12,6 +12,7 @@
          vec2-rotate-cw-90
          vec2-angle-rad
          vec2-angle-deg
+         vec2-distance vec2-distance-squared
          )
 
 (require "angles.scm")
@@ -62,4 +63,11 @@
 
 (define (vec2-angle-deg a)
   (atan-deg (vec2-y a) (vec2-x a)))
+
+(define (vec2-distance-squared a b)
+  (+ (sqr (- (vec2-x a) (vec2-x b)))
+     (sqr (- (vec2-y a) (vec2-y b)))))
+
+(define (vec2-distance a b)
+  (sqrt (vec2-distance-squared a b)))
 
