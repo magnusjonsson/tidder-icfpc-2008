@@ -37,7 +37,9 @@
      )
     ((end? m)
      (control-clear))
-    ((bump? m))
+    ((bump? m)
+     (printf "Bump!~n")
+     (control-set-state -1 #f))
     ((success? m)
      (control-clear))
     ((failure? m)
@@ -55,24 +57,24 @@
        (printf "target: ~a ~n" target)
        (speedometer-update t pos)
        (turnometer-update t dir)
-
+       
        (let* ((target-dir (vec2-angle-deg (vec2- target pos)))
               ; search forwards to see at what point we will crash going forwards, if any.
               (crash-distance (first-hit-time pos (angle-deg->vec2 dir)))
               (dir-target-diff (deg- target-dir dir))
               (steer (* 2 dir-target-diff))
               (wanted-speed (min
-                               ; drive slower when trying to turn
-                               (/ 320.0 (max 0.001 (abs steer)))
-                               ; drive slower when rotating
-                               (/ 320.0 (max 0.001 (abs (turnometer-value))))
-                               ; try to be able to stop in time if something shows up ahead.
-                               (* 2.0 (sqrt (max 0 (- (min (or crash-distance +inf.0)
-                                                           max-sensor)
-                                                      safety-margin))))
-                               ))
+                             ; drive slower when trying to turn
+                             (/ 320.0 (max 0.001 (abs steer)))
+                             ; drive slower when rotating
+                             (/ 320.0 (max 0.001 (abs (turnometer-value))))
+                             ; try to be able to stop in time if something shows up ahead.
+                             (* 2.0 (sqrt (max 0 (- (min (or crash-distance +inf.0)
+                                                         max-sensor)
+                                                    safety-margin))))
+                             ))
               (speed (speedometer-value))
-                            
+              
               (accel (sgn (- wanted-speed speed))))
          (printf "crash-distance: ~a~n" crash-distance)
          (printf "accel: ~a steer: ~a  speed: ~a wanted-speed: ~a~n" accel steer speed wanted-speed)

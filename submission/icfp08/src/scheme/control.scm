@@ -1,6 +1,6 @@
 #lang scheme
 
-(provide init set-state-deg/sec clear max-hard-turn)
+(provide init set-state-deg/sec clear max-hard-turn set-state)
 
 (require "network.scm")
 (require "misc-syntax.ss")
@@ -24,12 +24,14 @@
 (define (set-state as ss)
   (let ((accel-adjustment "")
         (steer-adjustment ""))
-    (cond
-      ((< as accel-state) (set! accel-adjustment "b") (dec! accel-state))
-      ((> as accel-state) (set! accel-adjustment "a") (inc! accel-state)))
-    (cond
-      ((< ss steer-state) (set! steer-adjustment "r") (dec! steer-state))
-      ((> ss steer-state) (set! steer-adjustment "l") (inc! steer-state)))
+    (when as
+      (cond
+        ((< as accel-state) (set! accel-adjustment "b") (dec! accel-state))
+        ((> as accel-state) (set! accel-adjustment "a") (inc! accel-state))))
+    (when ss
+      (cond
+        ((< ss steer-state) (set! steer-adjustment "r") (dec! steer-state))
+        ((> ss steer-state) (set! steer-adjustment "l") (inc! steer-state))))
     (when (or (not (equal? "" steer-adjustment))
               (not (equal? "" accel-adjustment)))
       (let ((s (format "~a~a;" accel-adjustment steer-adjustment)))
