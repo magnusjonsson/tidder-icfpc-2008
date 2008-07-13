@@ -22,7 +22,7 @@
 ; are circled around, plus the direction in which we avoid the obstacles.
 ; The empty list corresponds to the path that goes directly to the end point.
 
-(define safety-margin 1.0) ; 100% of vehicle's width
+(define safety-margin 2.0) ; 100% of vehicle's width
 
 (define (safe-radius o)
   (+ safety-margin
@@ -72,9 +72,11 @@
         (cond
           ((or (not arc-max) (<= arc arc-max)) p) ; "easy case"
           (else
+           ; the curve around obstacle that we plan to drive is partially blocked
+           ; so change your target to aim at the blocker instead
            (printf "blocker ~a~n" (first-curve-hit-obj p (obj-pos obstacle) (- direction)))
            (let* ((blocker (first-curve-hit-obj p (obj-pos obstacle) (- direction)))
-                  (t (circle-circle-tangent (obj-pos obstacle) (obj-radius obstacle) direction
-                                            (obj-pos blocker) (obj-radius blocker) direction))
+                  (t (circle-circle-tangent (obj-pos obstacle) (safe-radius obstacle) direction
+                                            (obj-pos blocker) (safe-radius blocker) direction))
                   (target-on-blocker (cdr t)))
              (safe-point pos target-on-blocker blocker)))))))
