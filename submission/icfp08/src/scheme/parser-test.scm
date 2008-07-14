@@ -7,9 +7,9 @@
 (require (prefix-in gfx- "graphics.scm"))
 
 (define (do-it server port debug gfx-program)
+  (connect-server server port)
   (when gfx-program
     (gfx-init "../../../../stuff/graphics/g"))
-  (connect-server server port)
   (let/ec disconnected
     (do () (#f)
       (let/ec escape
@@ -22,12 +22,12 @@
                             (printf "Caught ~a, trying to continue...~n" v)
                             (escape (void)))))
                         (if (message-available?)
-                          (handle-message (get-message))
-                          (handle-message (make-inbox-empty))))
+                            (handle-message (get-message))
+                            (handle-message (make-inbox-empty))))
         (sleep))))
-  (disconnect)
   (when (gfx-on?)
-    (gfx-quit)))
+    (gfx-quit))
+  (disconnect))
 
 (define (getarg i default)
   (let ((args (current-command-line-arguments)))
