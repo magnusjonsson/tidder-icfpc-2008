@@ -6,9 +6,9 @@
 (require "ai.scm")
 (require (prefix-in gfx- "graphics.scm"))
 
-(define (do-it server port debug)
-  (when debug
-    (gfx-init))
+(define (do-it server port debug gfx-program)
+  (when gfx-program
+    (gfx-init "../../../../stuff/graphics/g"))
   (connect-server server port)
   (let/ec disconnected
     (do () (#f)
@@ -25,9 +25,17 @@
                           (handle-message (get-message))))
         (sleep))))
   (disconnect)
-  (gfx-quit))
+  (when (gfx-on?)
+    (gfx-quit)))
+
+(define (getarg i default)
+  (let ((args (current-command-line-arguments)))
+    (if (< i (vector-length args))
+        (vector-ref args i)
+        default)))
 
 (when (>= (vector-length (current-command-line-arguments)) 2)
-  (do-it (vector-ref (current-command-line-arguments) 0)
-         (string->number (vector-ref (current-command-line-arguments) 1))
-         (>= (vector-length (current-command-line-arguments)) 3)))
+  (do-it (getarg 0 "localhost")
+         (string->number (getarg 1 "17676"))
+         (getarg 2 #f)
+         (getarg 3 #f)))
