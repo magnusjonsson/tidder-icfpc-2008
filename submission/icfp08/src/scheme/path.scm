@@ -27,6 +27,7 @@
 ; The empty list corresponds to the path that goes directly to the end point.
 
 (define safety-margin 2.0)
+(define lower-bound-wiggle 0.2)
 
 (define (safe-radius o)
   (+ safety-margin
@@ -290,7 +291,7 @@
                (yield! distance next-state next-state)))))
   (define (lower-bound state)
     ; not really a lower bound, but this reduces cpu usage
-    (distance start state))
+    (* (+ 1 (* lower-bound-wiggle (random))) (distance start state)))
   (define memoized-lower-bound (memoize 2000 lower-bound))
   
   (define (goal? state) (equal? state vec2-origin))
