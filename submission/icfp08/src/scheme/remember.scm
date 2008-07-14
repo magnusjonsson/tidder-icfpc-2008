@@ -214,14 +214,14 @@
   (let ((best-angle #f)
         (best-obj #f))
     ; only check neighbors
-    (for-each (lambda (obj)
-                (let ((t (curve-circle-intersection-angle
-                          curve-start curve-center direction
-                          (obj-pos obj) (obj-radius obj))))
+    (for-each (lambda (o)
+                (let ((t (curve-circle-intersection-angle2
+                          curve-start curve-center (obj-radius obj) direction
+                          (obj-pos o) (obj-radius o))))
                   (when t
                     (unless (and best-angle (< best-angle t))
                       (set! best-angle t)
-                      (set! best-obj obj)))))
+                      (set! best-obj o)))))
               (hash-ref neighbors obj '()))
     best-obj))
 
