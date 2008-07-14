@@ -34,6 +34,7 @@
 
 (define (old-compute-target pos)
   ; pos = position of our rover
+  (printf "Using old compute target!~n")
   (safe-point pos (make-vec2 0 0) #f))
 
 ; Returns a point that we can safely travel to. For the full pathfinding,
@@ -109,7 +110,7 @@
         ; they are hit in the wrong order, so the test fails.
         (and (<= ccw-angle-to-ccw-obj ccw-angle-to-cw-obj)
              (<= cw-angle-to-cw-obj cw-angle-to-ccw-obj)))))
-  
+
 (define (test-arc-contains-point)
   (define obj1 (make-obj 'boulder (make-vec2 0 0) 15))
   (define obj2 (make-obj 'boulder (make-vec2 10 0) 15))
@@ -173,7 +174,7 @@
                                 ((list tp1 obj2 dir2 tp2)
                                  (and (arc-contains-point arc tp1)
                                       (list obj2 dir2 tp2)))))
-                     (unobstructed-obj-obj-tangents obj1 direction))))))))
+                            (unobstructed-obj-obj-tangents obj1 direction))))))))
 
 
 
@@ -260,8 +261,8 @@
      (if (directed-arc? state2)
          (* (- pi 1) (obj-radius (arc-host-obj (directed-arc-arc state2))))
          0)))
-         
-              
+
+
 (define (astar start)
   (define num-calls-to-reachable-states 0)
   (define (move-vector state)
@@ -288,10 +289,10 @@
                     (distance   (begin0 (vector-ref v j) (inc! j))))
                (yield! distance next-state next-state)))))
   (define (lower-bound state)
-     ; not really a lower bound, but this reduces cpu usage
+    ; not really a lower bound, but this reduces cpu usage
     (distance start state))
   (define memoized-lower-bound (memoize 2000 lower-bound))
-
+  
   (define (goal? state) (equal? state vec2-origin))
   (let ((result (let/ec return
                   (a* start goal? memoized-lower-bound generate-moves!
@@ -322,16 +323,27 @@
   (remember-object obj3)
   (astar (make-vec2 5 -60)))
 
-
 (define current-path #f)
+(define astar-thread #f)
 
 (define (must-recompute-path)
+  (when astar-thread
+    (kill-thread astar-thread)
+    (set! astar-thread #f))
   (set! current-path #f))
 
 (define (compute-path pos)
   ; path memoization is done in compute-target instead
   ;(set! current-path (or current-path (astar pos)))
-  (set! current-path (astar pos))
+  (unless astar-thread
+    ;Start the thread
+    (set! astar-thread
+          (thread (lambda ()
+                    (set! current-path (astar pos))
+                    (set! astar-thread #f))))
+    ;Wait a little in case it's done quickly
+    (sleep 5))
+  
   (printf "astar solution: ~a~n" current-path)
   (when current-path
     (printf "astar solution length: ~a~n" (length current-path)))
