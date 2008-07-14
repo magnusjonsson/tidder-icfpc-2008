@@ -229,7 +229,7 @@
   (define (generate-moves! state yield!)
     (for-each (lambda (x) (yield! 1 x x)) (reachable-states state)))
   (define (lower-bound state) 0)
-  (define (goal? state) (match state ((struct vec2 (0 0)) #t) (else #f)))
+  (define (goal? state) (equal? state vec2-origin))
   (let/ec return
     (a* start goal? lower-bound generate-moves!
         (lambda (solution cost) (return (list solution cost))))))
