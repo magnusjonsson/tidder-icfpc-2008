@@ -11,9 +11,9 @@ BITMAP* offscreen;
 double dx = 100.0;
 double dy = 100.0;
 
-int sx(double x) { return 512*(0.5+0.5*x/max(dx,dy)); }
-int sy(double y) { return 512*(0.5-0.5*y/max(dx,dy)); }
-int sr(double r) { return 512*0.5*r/max(dx,dy); }
+int sx(double x) { return 512*(0.5+x/max(dx,dy)); }
+int sy(double y) { return 512*(0.5-y/max(dx,dy)); }
+int sr(double r) { return 512*r/max(dx,dy); }
 
 int color = 0;
 
