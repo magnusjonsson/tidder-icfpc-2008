@@ -213,7 +213,7 @@
 (define (first-curve-hit-obj obj curve-start curve-center direction)
   (let ((best-angle #f)
         (best-obj #f))
-    ; possible optimization: only check adjacent obstacles
+    ; only check neighbors
     (for-each (lambda (obj)
                 (let ((t (curve-circle-intersection-angle
                           curve-start curve-center direction
