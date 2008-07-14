@@ -5,7 +5,11 @@
 
 (define-struct item (prio depth state path))
 
-(define (a* start goal? heuristic generate-moves! success!)
+; returns a function that when called returns
+; #f if there is no solution
+; #t if calling it again may yield a solution
+; (path cost) if a solution is found
+(define (a* start goal? heuristic generate-moves!)
   (let ((depth-hash (make-hash))
         (frontier   (prio:make (lambda (a b)
                                  (< (item-prio a) (item-prio b))))))
@@ -21,16 +25,19 @@
         (match first-item
           ((struct item (_ depth state path))
            (let ((best-depth (hash-ref depth-hash state #f)))
-             (when (= depth best-depth)
-               (if (goal? state)
-                   (success! path depth)
-                   (generate-moves! state
-                                    (lambda (cost desc next-state)
-                                      (add! (+ depth cost)
-                                            next-state
-                                            (cons desc path)))))))))))
+             (if (> depth best-depth)
+                 #t
+                 (if (goal? state)
+                     (list path depth)
+                     (begin
+                       (generate-moves! state
+                                        (lambda (cost desc next-state)
+                                          (add! (+ depth cost)
+                                                next-state
+                                                (cons desc path))))
+                       #t))))))))
     (add! 0 start '())
-    (let loop ()
-      (unless (prio:empty? frontier)
-        (try-next!)
-        (loop)))))
+    (lambda ()
+      (if (prio:empty? frontier)
+          #f
+          (try-next!)))))

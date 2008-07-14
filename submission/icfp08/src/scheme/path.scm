@@ -293,12 +293,14 @@
   (define memoized-lower-bound (memoize 2000 lower-bound))
 
   (define (goal? state) (equal? state vec2-origin))
-  (let ((result (let/ec return
-                  (a* start goal? memoized-lower-bound generate-moves!
-                      (lambda (solution cost) (return (list (reverse solution) cost))))
-                  #f)))
-    (printf "num calls to reachable-states: ~a~n" num-calls-to-reachable-states)
-    result))
+  (let* ((search (a* start goal? memoized-lower-bound generate-moves!)))
+    (let loop ()
+      (let ((result (search))) ; do one little piece of search
+        (match result
+          (#f #f) ; end of search, no solution
+          (#t (loop)) ; no solution yet, but keep searching
+          ((list path depth) ; found solution
+           result))))))
 
 (define (astar-test-wall)
   ; can we get around a wall?
