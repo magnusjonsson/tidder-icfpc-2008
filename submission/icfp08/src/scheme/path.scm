@@ -9,6 +9,7 @@
 (require (only-in rnrs/base-6 assert))
 (require "misc-syntax.ss")
 (require (prefix-in gfx- "graphics.scm"))
+(require "libraries/cache/memoize.scm")
 
 (provide safety-margin compute-target must-recompute-path draw-path)
 
@@ -251,17 +252,41 @@
          
               
 (define (astar start)
+  (define num-calls-to-reachable-states 0)
+  (define (move-vector state)
+    (inc! num-calls-to-reachable-states)
+    (let* ((next-states (reachable-states state))
+           (n (length next-states))
+           (nn (* 2 n))
+           (v (make-vector nn))
+           (j 0))
+      (while (< j nn)
+             (let ((next-state (pop! next-states)))
+               (vector-set! v j next-state)
+               (inc! j)
+               (vector-set! v j (distance state next-state))
+               (inc! j)))
+      v))
+  (define memoized-move-vector (memoize 2000 move-vector))
   (define (generate-moves! state yield!)
-    (for-each (lambda (x) (yield! (distance state x) x x)) (reachable-states state)))
+    (let* ((v (memoized-move-vector state))
+           (nn (vector-length v))
+           (j 0))
+      (while (< j nn)
+             (let* ((next-state (begin0 (vector-ref v j) (inc! j)))
+                    (distance   (begin0 (vector-ref v j) (inc! j))))
+               (yield! distance next-state next-state)))))
   (define (lower-bound state)
      ; not really a lower bound, but this reduces cpu usage
-    (* 100 (distance start state))
-    )
+    (distance start state))
+
   (define (goal? state) (equal? state vec2-origin))
-  (let/ec return
-    (a* start goal? lower-bound generate-moves!
-        (lambda (solution cost) (return (list (reverse solution) cost))))
-    #f))
+  (let ((result (let/ec return
+                  (a* start goal? lower-bound generate-moves!
+                      (lambda (solution cost) (return (list (reverse solution) cost))))
+                  #f)))
+    (printf "num calls to reachable-states: ~a~n" num-calls-to-reachable-states)
+    result))
 
 (define (astar-test-wall)
   ; can we get around a wall?
@@ -295,7 +320,8 @@
   ;(set! current-path (or current-path (astar pos)))
   (set! current-path (astar pos))
   (printf "astar solution: ~a~n" current-path)
-  (printf "astar solution length: ~a~n" (length current-path))
+  (when current-path
+    (printf "astar solution length: ~a~n" (length current-path)))
   current-path)
 
 
@@ -326,7 +352,6 @@
 
 (define (draw-path from-pos)
   (when (and current-path (gfx-on?))
-    (printf "drawing path: ~a~n" (car current-path))
     (dolist (state (car current-path))
             (let ((to-pos (state-center state)))
               (gfx-line (vec2-x from-pos) (vec2-y from-pos)
