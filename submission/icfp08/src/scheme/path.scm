@@ -71,21 +71,22 @@
 (define (tangent-point pos target obstacle direction)
   (if (not obstacle) target
       (let* ((p (tangent pos (obj-pos obstacle) (safe-radius obstacle) direction))
-             (q (tangent target (obj-pos obstacle) (safe-radius obstacle) (- direction)))
-             (arc (curve-angle p (obj-pos obstacle) q (- direction)))
-             (arc-max (first-curve-hit-angle p (obj-pos obstacle) (- direction))))
-        (printf "obstacle ~a~n" obstacle)
-        (cond
-          ((or (not arc-max) (<= arc arc-max)) p) ; "easy case"
-          (else
-           ; the curve around obstacle that we plan to drive is partially blocked
-           ; so change your target to aim at the blocker instead
-           (printf "blocker ~a~n" (first-curve-hit-obj obstacle p (obj-pos obstacle) (- direction)))
-           (let* ((blocker (first-curve-hit-obj obstacle p (obj-pos obstacle) (- direction)))
-                  (t (circle-circle-tangent (obj-pos obstacle) (safe-radius obstacle) direction
-                                            (obj-pos blocker) (safe-radius blocker) direction))
-                  (target-on-blocker (cdr t)))
-             (safe-point pos target-on-blocker blocker)))))))
+;             (q (tangent target (obj-pos obstacle) (safe-radius obstacle) (- direction)))
+;             (arc (curve-angle p (obj-pos obstacle) q (- direction)))
+;             (arc-max (first-curve-hit-angle p (obj-pos obstacle) (- direction))))
+        )p)))
+;        (printf "obstacle ~a~n" obstacle)
+;        (cond
+;          ((or (not arc-max) (<= arc arc-max)) p) ; "easy case"
+;          (else
+;           ; the curve around obstacle that we plan to drive is partially blocked
+;           ; so change your target to aim at the blocker instead
+;           (printf "blocker ~a~n" (first-curve-hit-obj obstacle p (obj-pos obstacle) (- direction)))
+;           (let* ((blocker (first-curve-hit-obj obstacle p (obj-pos obstacle) (- direction)))
+;                  (t (circle-circle-tangent (obj-pos obstacle) (safe-radius obstacle) direction
+;                                            (obj-pos blocker) (safe-radius blocker) direction))
+;                  (target-on-blocker (cdr t)))
+;             (safe-point pos target-on-blocker blocker)))))))
 
 
 ;
