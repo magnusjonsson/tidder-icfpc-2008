@@ -24,10 +24,12 @@
 ; The value corresponding to each object is a parent object as in the Union-Find algorithm.
 ;
 
+(define-struct versioned-tangents (version tangents) #:mutable)
+
 (define-struct info (parent ; used for union-find to group connected objects
                      ; add more here as needed
-                     unobstructed-tangents-ccw ; list of (list point1 obj2 dir2 point2)
-                     unobstructed-tangents-cw ; list of (list point1 obj2 dir2 point2)
+                     ccw ; versioned-tangents
+                     cw ; versioned-tangents
                      neighbours
                      ) #:mutable)
 
@@ -35,8 +37,19 @@
 (define group-count 0)
 (define remembered (make-hash))  ; obj -> info
 
+; new objects are pushed here in the order they arrive
+(define history '())
+
+(define (objects-added-since version)
+  (let ((h history)
+        (r '()))
+    (while (not (eq? h version))
+           (push! r (pop! h)))
+    r))
+
 (define (clear-remembered)
   (set! remembered (make-hash))
+  (set! history '())
   (set! obj-count 0)
   (set! group-count 0)
   (set! dirty #t))
@@ -61,25 +74,19 @@
                              objects)))
     ;(printf "received new objects: ~a~n" new-objects)
     ;(printf "checking old tangents~n")
-    (check-old-tangents new-objects)
     (for-each (lambda (o)
                 (assert (obj? o))
-                (let ((unobstructed-tangents-ccw (find-unobstructed-obj-obj-tangents o 1))
-                      (unobstructed-tangents-cw (find-unobstructed-obj-obj-tangents o -1)))
-                  ;(printf "adding reverse tangents ccw~n")
-                  (add-reverse-tangents o 1 unobstructed-tangents-ccw)
-                  ;(printf "adding reverse tangents cw~n")
-                  (add-reverse-tangents o -1 unobstructed-tangents-cw)
-                  ; todo: add the tangents to the symmetric object
+                (let ()
                   (hash-set! remembered o
                              (make-info o ; parent
-                                        unobstructed-tangents-ccw
-                                        unobstructed-tangents-cw
+                                        (make-versioned-tangents '() '())
+                                        (make-versioned-tangents '() '())
                                         '() ; neighbours
                                         ))
+                  ; pushing to history
+                  (push! history o)
                   (inc! obj-count)
                   (inc! group-count)
-                  ; possibly merge it with existing groups
                   ;(printf "merging obj to groups~n")
                   (merge-new-obj o)
                   ;(printf "done merging~n")
@@ -90,42 +97,6 @@
   (clear-remembered)
   (remember-objects
    (list (make-obj 'crater (make-vec2 50.0 -5.0) 5.0) (make-obj 'crater (make-vec2 50.0 5.0) 5.0))))
-
-(define (add-reverse-tangents obj1 dir1 tangents)
-  (for-each (lambda (uut)
-              (match uut
-                ((list point1 obj2 dir2 point2)
-                 (add-tangent obj2 (- dir2) point2 obj1 (- dir1) point1))))
-            tangents))
-
-(define (add-tangent obj1 dir1 point1 obj2 dir2 point2)
-  (let ((info (hash-ref remembered obj1))
-        (tangent (list point1 obj2 dir2 point2)))
-    (match dir2
-      (1 (set-info-unobstructed-tangents-ccw!
-          info (cons tangent (info-unobstructed-tangents-ccw info))))
-      (-1 (set-info-unobstructed-tangents-cw!
-           info (cons tangent (info-unobstructed-tangents-cw info)))))))
-                      
-
-(define (check-old-tangents new-objects)
-  (define (do-filter dir1 unobstructed-tangents)
-    (filter (lambda (ut)
-              (match ut
-                ((list point1 obj2 dir2 point2)
-                 (andmap (lambda (new-obj)
-                           (not (line-intersects-circle? point1 point2
-                                                         (obj-pos new-obj)
-                                                         (obj-radius new-obj))))
-                         new-objects))))
-            unobstructed-tangents))
-
-  (hash-for-each remembered
-                 (lambda (obj info)
-                   (set-info-unobstructed-tangents-ccw!
-                    info (do-filter -1 (info-unobstructed-tangents-ccw info)))
-                   (set-info-unobstructed-tangents-cw!
-                    info (do-filter 1 (info-unobstructed-tangents-cw info))))))
 
 (define (add-neighbor a b)
   (define (add-single-neighbor a b)
@@ -244,12 +215,22 @@
     result))
   
 (define (unobstructed-obj-obj-tangents obj1 dir1)
-  (let ((info (hash-ref remembered obj1)))
-    (match dir1
-      (1 (info-unobstructed-tangents-ccw info))
-      (-1 (info-unobstructed-tangents-cw info)))))
+  (let* ((info (hash-ref remembered obj1))
+         (versioned-tangents (match dir1
+                              (1 (info-ccw info))
+                              (-1 (info-cw info)))))
+    (bring-tangents-up-to-date versioned-tangents obj1 dir1)
+    (versioned-tangents-tangents versioned-tangents)))
 
-(define (find-unobstructed-obj-obj-tangents obj1 dir1)
+(define (bring-tangents-up-to-date vt obj1 dir1)
+  (let ((new-objs (objects-added-since (versioned-tangents-version vt))))
+    (set-versioned-tangents-tangents!
+     vt
+     (append (discover-new-tangents obj1 dir1 new-objs)
+             (filter-old-tangents (versioned-tangents-tangents vt) new-objs)))
+    (set-versioned-tangents-version! vt history)))
+
+(define (discover-new-tangents obj1 dir1 new-objs)
   (let ((result '()))
     (define (consider obj2 dir2)
       (let ((tangent-points (circle-circle-tangent (obj-pos obj1) (obj-radius obj1) dir1
@@ -257,16 +238,25 @@
         (unless (line-obstructed? (car tangent-points) (cdr tangent-points) (list obj1 obj2))
           (push! result (list (car tangent-points)
                               obj2 dir2 (cdr tangent-points))))))
-    (hash-for-each remembered
-                   (lambda (obj2 _)
-                     (when (not (equal? obj1 obj2))
-                       ; straight loop
-                       (consider obj2 dir1)
-                       (unless (objects-overlap? obj1 obj2)
-                         ; zig-zagging between overlapping objects doesn't
-                         ; make sense
-                         (consider obj2  (- dir1))))))
+    (for-each (lambda (obj2)
+                (when (not (equal? obj1 obj2))
+                  ; straight loop
+                  (consider obj2 dir1)
+                  (unless (objects-overlap? obj1 obj2)
+                    ; zig-zagging between overlapping objects doesn't
+                    ; make sense
+                    (consider obj2  (- dir1)))))
+              new-objs)
     result))
+
+(define (filter-old-tangents tangents new-objs)
+  (define (clear? tangent)
+    (match tangent
+      ((list point1 obj2 dir2 point2)
+       (not (ormap (lambda (o)
+                     (line-intersects-circle? point1 point2 (obj-pos o) (obj-radius o)))
+                   new-objs)))))
+  (filter clear? tangents))
 
 (define (test)
   (test1)
