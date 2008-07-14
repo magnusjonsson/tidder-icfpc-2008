@@ -66,9 +66,10 @@
 
      (remember-objects (map preprocess-object (telemetry-seen m)))
      
-     (when (remembered-dirty?)
-       (clear-remembered-dirty)
-       (must-recompute-path))
+     ;(when (remembered-dirty?)
+     ;  (clear-remembered-dirty)
+     ;  (must-recompute-path)
+     ;  )
      
      (set! current-telemetry m)
      
