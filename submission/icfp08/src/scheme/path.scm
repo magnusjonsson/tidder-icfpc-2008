@@ -294,12 +294,14 @@
   (define memoized-lower-bound (memoize 2000 lower-bound))
   
   (define (goal? state) (equal? state vec2-origin))
-  (let ((result (let/ec return
-                  (a* start goal? memoized-lower-bound generate-moves!
-                      (lambda (solution cost) (return (list (reverse solution) cost))))
-                  #f)))
-    (printf "num calls to reachable-states: ~a~n" num-calls-to-reachable-states)
-    result))
+  (let* ((search (a* start goal? memoized-lower-bound generate-moves!)))
+    (let loop ()
+      (let ((result (search))) ; do one little piece of search
+        (match result
+          (#f #f) ; end of search, no solution
+          (#t (loop)) ; no solution yet, but keep searching
+          ((list path depth) ; found solution
+           result))))))
 
 (define (astar-test-wall)
   ; can we get around a wall?
@@ -339,7 +341,8 @@
     ;Start the thread
     (set! astar-thread
           (thread (lambda ()
-                    (set! current-path (astar pos))
+                    (let ((p (astar pos)))
+                      (set! current-path (and (pair? p) (car p))))
                     (set! astar-thread #f))))
     (sleep))
   
@@ -362,28 +365,30 @@
      (list home))
     (else (list))))
 
-(define (get-path-goal pos path)
+(define (get-path-goal pos path default)
+  (printf "trying to reuse path~n")
   (match path
-    ((list solution cost)
-     (let ((last-reachable-point #f))
-       (for-each (lambda (goal)
-                   (let ((goal-point (get-goal-point pos goal))
-                         (goal-ignore-list (get-goal-ignore-list goal)))
-                     (unless (line-obstructed? pos goal-point goal-ignore-list)
-                       (set! last-reachable-point goal-point))))
-                 solution)
-       (when (not last-reachable-point) (printf "path contains no reachable goals: ~a~n" solution))
-       last-reachable-point))
-    (else (printf "no solution found~n") #f)))
+    ((cons goal rest)
+     (let ((goal-point (get-goal-point pos goal))
+           (goal-ignore-list (get-goal-ignore-list goal)))
+       (cond ((line-obstructed? pos goal-point goal-ignore-list)
+              (get-path-goal pos rest default))
+             (else (set! current-path (cons goal rest)) ; cut off earlier nodes
+                   ; search for a later hit
+                   (get-path-goal pos rest goal-point)))))
+    ((list)
+     ; everythings blocked
+     (unless default (set! current-path #f))
+     default)))
 
 (define (compute-target pos)
-  (or (and current-path (get-path-goal pos current-path))
-      (get-path-goal pos (compute-path pos))
+  (or (and current-path (get-path-goal pos current-path #f))
+      (and (compute-path pos) (get-goal-point pos (car current-path)))
       (old-compute-target pos)))
 
 (define (draw-path from-pos)
   (when (and current-path (gfx-on?))
-    (dolist (state (car current-path))
+    (dolist (state current-path)
             (let ((to-pos (state-center state)))
               (gfx-line (vec2-x from-pos) (vec2-y from-pos)
                         (vec2-x to-pos) (vec2-y to-pos))
