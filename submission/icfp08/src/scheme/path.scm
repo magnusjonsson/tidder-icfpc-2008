@@ -318,6 +318,7 @@
   (set! current-path #f))
 
 (define (compute-path pos)
+  ; path memoization is done in compute-target instead
   ;(set! current-path (or current-path (astar pos)))
   (set! current-path (astar pos))
   (printf "astar solution: ~a~n" current-path)
@@ -325,31 +326,38 @@
     (printf "astar solution length: ~a~n" (length current-path)))
   current-path)
 
+(define (get-goal-point pos goal)
+  (match goal
+    ((struct vec2 (_ _)) goal)
+    ((struct directed-arc (arc direction))
+     (tangent pos (obj-pos (arc-host-obj arc))
+              (safe-radius (arc-host-obj arc))
+              (- direction)))))
+
+(define (get-goal-ignore-list goal)
+  (match goal
+    ((struct directed-arc ((struct arc (home ccw cw)) direction))
+     (list home))
+    (else (list))))
+
+(define (get-path-goal pos path)
+  (match path
+    ((list solution cost)
+     (let ((last-reachable-point #f))
+       (for-each (lambda (goal)
+                   (let ((goal-point (get-goal-point pos goal))
+                         (goal-ignore-list (get-goal-ignore-list goal)))
+                     (unless (line-obstructed? pos goal-point goal-ignore-list)
+                       (set! last-reachable-point goal-point))))
+                 solution)
+       (when (not last-reachable-point) (printf "path contains no reachable goals: ~a~n" solution))
+       last-reachable-point))
+    (else (printf "no solution found") #f)))
 
 (define (compute-target pos)
-  (define (fall-back reason-format . params)
-    (apply printf reason-format params)
-    (printf "Falling back to old-compute-target.~n")
-    (old-compute-target pos))
-  (match (compute-path pos)
-    ((list solution cost)
-     (match solution
-       ((cons first-target more-targets)
-        (match first-target
-          ((struct vec2 (_ _))
-           first-target)
-          ((struct directed-arc (arc direction))
-           (tangent pos (obj-pos (arc-host-obj arc))
-                    (safe-radius (arc-host-obj arc))
-                      (- direction)))
-          (_
-           (fall-back "astar returned strange first target: ~a~n" first-target))))
-       (_
-        (fall-back "astar returned strange solution: ~a~n" solution))))
-    (path
-     (fall-back "astar found no solution: ~a~n" path))))
-
-
+  (or (and current-path (get-path-goal pos current-path))
+      (get-path-goal pos (compute-path pos))
+      (old-compute-target pos)))
 
 (define (draw-path from-pos)
   (when (and current-path (gfx-on?))
