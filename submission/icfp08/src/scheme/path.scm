@@ -168,10 +168,11 @@
            (list vec2-origin)
            ; otherwise find reachable directed arcs
            (map tangent-info->directed-arc
-                (map (lambda (tangent-info)
-                       (match tangent-info
-                         ((list tp1 obj2 dir2 tp2)
-                          (list obj2 dir2 tp2))))
+                (filter-map (lambda (tangent-info)
+                              (match tangent-info
+                                ((list tp1 obj2 dir2 tp2)
+                                 (and (arc-contains-point arc tp1)
+                                      (list obj2 dir2 tp2)))))
                      (unobstructed-obj-obj-tangents obj1 direction))))))))
 
 
@@ -241,7 +242,7 @@
         (o3 (make-obj 'crater (make-vec2  1 2) 2))
         (o4 (make-obj 'crater (make-vec2 10 3) 2)))
     (remember-objects (list o1 o2 o3 o4))
-    (pretty-list-of-length 4 (reachable-states (make-directed-arc (make-arc o2 o3 o1) -1)))
+    (pretty-list-of-length 1 (reachable-states (make-directed-arc (make-arc o2 o3 o1) -1)))
     ))
 
 
