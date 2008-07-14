@@ -300,7 +300,7 @@
           (#f #f) ; end of search, no solution
           (#t (loop)) ; no solution yet, but keep searching
           ((list path depth) ; found solution
-           result))))))
+           (list (reverse path) depth)))))))
 
 (define (astar-test-wall)
   ; can we get around a wall?
@@ -355,25 +355,38 @@
      (list home))
     (else (list))))
 
-(define (get-path-goal pos path default)
-  (printf "trying to reuse path")
-  (match path
-    ((cons goal rest)
-     (let ((goal-point (get-goal-point pos goal))
-           (goal-ignore-list (get-goal-ignore-list goal)))
-       (cond ((line-obstructed? pos goal-point goal-ignore-list)
-              (get-path-goal pos rest default))
-             (else (set! current-path (cons goal rest)) ; cut off earlier nodes
-                   ; search for a later hit
-                   (get-path-goal pos rest goal-point)))))
-    ((list)
-     ; everythings blocked
-     (unless default (set! current-path #f))
-     default)))
+;(define (get-path-goal pos path default)
+;  (printf "trying to reuse path")
+;  (match path
+;    ((cons goal rest)
+;     (let ((goal-point (get-goal-point pos goal))
+;           (goal-ignore-list (get-goal-ignore-list goal)))
+;       (cond ((line-obstructed? pos goal-point goal-ignore-list)
+;              (get-path-goal pos rest default))
+;             (else (set! current-path (cons goal rest)) ; cut off earlier nodes
+;                   ; search for a later hit
+;                   (get-path-goal pos rest goal-point)))))
+;    ((list)
+;     ; everythings blocked
+;     (unless default (set! current-path #f))
+;     default)))
 
 (define (compute-target pos)
-  (or (and current-path (get-path-goal pos current-path #f))
-      (and (compute-path pos) (get-goal-point pos (car current-path)))
+  (define (directly-reachable? goal)
+    (let ((point (get-goal-point pos goal)))
+      (not (line-obstructed? pos point (get-goal-ignore-list goal)))))
+  (define (cut-path)
+    (let ((path current-path))
+      (set! current-path #f)
+      (while (cons? path)
+             (let ((goal (car path)))
+               (when (directly-reachable? goal)
+                 (set! current-path path))
+               (set! path (cdr path))))))
+  (cut-path)
+  (when (not current-path)
+    (compute-path pos))
+  (or (and current-path (get-goal-point pos (car current-path)))
       (old-compute-target pos)))
 
 (define (draw-path from-pos)
