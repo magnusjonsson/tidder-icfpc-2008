@@ -1,0 +1,32 @@
+From: Bobby Bingham <uhmmmm@gmail.com>
+Date: Sun, Jul 13, 2008 at 8:53 PM
+Subject: [Icfpc08] Server speed
+To: icfpc08@cs.pdx.edu
+
+
+I've developed a method to make the server run the simulated time
+faster to allow for quick running of many tests, and thought that
+others might be interested.  This probably only works on Linux.  To
+compile the attached code, do:
+
+gcc -fPIC -shared -nostartfiles -m32 speedhack.c -o speedhack.so -ldl
+
+(I'm developing this on a 64-bit machine.  The -m32 is probably not
+necessary on a 32-bit machine).
+
+To use it, run the server like so:
+
+LD_PRELOAD=./speedhack.so ./server [normal parameters here]
+
+The speedup can be adjusted by changing FACTOR at the top of the file.
+
+I can't guarantee the results with this hack will be the same as
+without it -- I don't know how the server reacts to having less time to
+do its calculations in.  But in my quick tests, it seems to produce
+very similar results at least.
+
+--
+Bobby Bingham
+Never trust atoms.  Or anything made of atoms.
+このメールは再利用されたバイトでできている。
+
