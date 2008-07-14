@@ -124,11 +124,20 @@
                    (set-info-unobstructed-tangents-cw!
                     info (do-filter 1 (info-unobstructed-tangents-cw info))))))
 
+(define neighbors (make-hash))
+
+(define (add-neighbor a b)
+  (define (add-single-neighbor a b)
+    (hash-set! neighbors a (cons b (hash-ref neighbors a '()))))
+  (add-single-neighbor a b)
+  (add-single-neighbor b a))
+
 (define (merge-new-obj o)
   (hash-for-each remembered
                  (lambda (obj parent)
-                   (when (objects-overlap? o obj)
-                     (merge o obj)))))
+                   (when (and (not (eq? o obj)) (objects-overlap? o obj))
+                     (merge o obj)
+                     (add-neighbor o obj)))))
 
 
 ; the Union part of Union-Find
@@ -201,19 +210,19 @@
                            (set! best-angle t))))))
     best-angle))
 
-(define (first-curve-hit-obj curve-start curve-center direction)
+(define (first-curve-hit-obj obj curve-start curve-center direction)
   (let ((best-angle #f)
         (best-obj #f))
     ; possible optimization: only check adjacent obstacles
-    (hash-for-each remembered
-                   (lambda (obj _)
-                     (let ((t (curve-circle-intersection-angle
-                               curve-start curve-center direction
-                               (obj-pos obj) (obj-radius obj))))
-                       (when t
-                         (unless (and best-angle (< best-angle t))
-                           (set! best-angle t)
-                           (set! best-obj obj))))))
+    (for-each (lambda (obj)
+                (let ((t (curve-circle-intersection-angle
+                          curve-start curve-center direction
+                          (obj-pos obj) (obj-radius obj))))
+                  (when t
+                    (unless (and best-angle (< best-angle t))
+                      (set! best-angle t)
+                      (set! best-obj obj)))))
+              (hash-ref neighbors obj '()))
     best-obj))
 
 (define (objects-overlap? o1 o2)
