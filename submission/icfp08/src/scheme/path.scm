@@ -78,8 +78,8 @@
           (else
            ; the curve around obstacle that we plan to drive is partially blocked
            ; so change your target to aim at the blocker instead
-           (printf "blocker ~a~n" (first-curve-hit-obj p (obj-pos obstacle) (- direction)))
-           (let* ((blocker (first-curve-hit-obj p (obj-pos obstacle) (- direction)))
+           (printf "blocker ~a~n" (first-curve-hit-obj obstacle p (obj-pos obstacle) (- direction)))
+           (let* ((blocker (first-curve-hit-obj obstacle p (obj-pos obstacle) (- direction)))
                   (t (circle-circle-tangent (obj-pos obstacle) (safe-radius obstacle) direction
                                             (obj-pos blocker) (safe-radius blocker) direction))
                   (target-on-blocker (cdr t)))
@@ -124,8 +124,8 @@
 (define (tangent-info->directed-arc tangent)
   (match tangent
     ((list obj dir tangent-point)
-     (let* ((ccw-obj (first-curve-hit-obj tangent-point (obj-pos obj) 1))
-            (cw-obj (first-curve-hit-obj tangent-point (obj-pos obj) -1))
+     (let* ((ccw-obj (first-curve-hit-obj obj tangent-point (obj-pos obj) 1))
+            (cw-obj (first-curve-hit-obj obj tangent-point (obj-pos obj) -1))
             (arc (make-arc obj ccw-obj cw-obj)))
        (make-directed-arc arc dir)))))
 
