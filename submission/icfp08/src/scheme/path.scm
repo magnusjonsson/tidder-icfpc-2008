@@ -234,11 +234,21 @@
     (a* start goal? lower-bound generate-moves!
         (lambda (solution cost) (return (list solution cost))))))
 
-(define (astar-test)
+(define (astar-test-wall)
   ; can we get around a wall?
   (define obj1 (make-obj 'boulder (make-vec2 0 -30) 15))
   (define obj2 (make-obj 'boulder (make-vec2 10 -30) 15))
   (define obj3 (make-obj 'boulder (make-vec2 20 -30) 15))
+  (remember-object obj1)
+  (remember-object obj2)
+  (remember-object obj3)
+  (astar (make-vec2 5 -60)))
+
+(define (astar-test-barely-nudging-wall)
+  ; can we get around a wall of barely-touching boulders?
+  (define obj1 (make-obj 'boulder (make-vec2 0 -30) 5))
+  (define obj2 (make-obj 'boulder (make-vec2 10 -30) 5))
+  (define obj3 (make-obj 'boulder (make-vec2 20 -30) 5))
   (remember-object obj1)
   (remember-object obj2)
   (remember-object obj3)
