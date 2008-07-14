@@ -407,8 +407,8 @@
      (let* ((obj1 (arc-host-obj (directed-arc-arc state1)))
             (obj2 (arc-host-obj (directed-arc-arc state2)))
             (points (circle-circle-tangent
-                     (obj-pos obj1) (obj-radius obj1) (directed-arc-direction state1)
-                     (obj-pos obj2) (obj-radius obj2) (directed-arc-direction state2)))
+                     (obj-pos obj1) (obj-radius obj1) (- (directed-arc-direction state1))
+                     (obj-pos obj2) (obj-radius obj2) (- (directed-arc-direction state2))))
             (point1 (car points))
             (point2 (cdr points)))
        (values point1 point2)))))
