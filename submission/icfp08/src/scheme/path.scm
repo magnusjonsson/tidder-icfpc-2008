@@ -8,8 +8,9 @@
 (require "tangent.scm")
 (require (only-in rnrs/base-6 assert))
 (require "misc-syntax.ss")
+(require (prefix-in gfx- "graphics.scm"))
 
-(provide safety-margin compute-target must-recompute-path)
+(provide safety-margin compute-target must-recompute-path draw-path)
 
 ; The idea is to store a "planned path", i.e. the path we will follow if no
 ; information arrives, and to recompute it whenever the planned path turns out
@@ -232,12 +233,18 @@
     (pretty-list-of-length 2 (reachable-states (make-vec2 10 0)))
     ))
 
+
+(define (state-center s)
+  (match s
+    ((struct vec2 (_ _))
+     s)
+    ((struct directed-arc (arc direction))
+     (obj-pos (arc-host-obj arc)))
+    (_ (printf "state-center: strange argument ~a~n" s)
+       (assert #f))))
+
 (define (distance state1 state2)
-  (define (to-vec2 s)
-    (cond ((vec2? s) s)
-          ((directed-arc? s) (obj-pos (arc-host-obj (directed-arc-arc s))))
-          (#t (assert #f))))
-  (+ (vec2-distance (to-vec2 state1) (to-vec2 state2))
+  (+ (vec2-distance (state-center state1) (state-center state2))
      (if (directed-arc? state2)
          (* (- pi 1) (obj-radius (arc-host-obj (directed-arc-arc state2))))
          0)))
@@ -314,3 +321,15 @@
         (fall-back "astar returned strange solution: ~a~n" solution))))
     (path
      (fall-back "astar found no solution: ~a~n" path))))
+
+
+
+(define (draw-path from-pos)
+  (when (and current-path (gfx-on?))
+    (printf "drawing path: ~a~n" (car current-path))
+    (dolist (state (car current-path))
+            (let ((to-pos (state-center state)))
+              (gfx-line (vec2-x from-pos) (vec2-y from-pos)
+                        (vec2-x to-pos) (vec2-y to-pos))
+              (set! from-pos to-pos)))))
+                        

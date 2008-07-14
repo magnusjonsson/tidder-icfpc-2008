@@ -60,9 +60,10 @@
                                     body ...))))
 (define-syntax dolist
   (syntax-rules ()
-    ((_ (var list) body ...) (do ((var list (cdr var)))
-                               ((empty? var))
-                               body ...))))
+    ((_ (var list) body ...) (do ((iter list (cdr iter)))
+                               ((empty? iter))
+                               (let ((var (car iter)))
+                                 body ...)))))
 
 (define-syntax swap!
   (syntax-rules ()

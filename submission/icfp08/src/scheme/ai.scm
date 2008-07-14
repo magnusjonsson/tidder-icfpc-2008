@@ -125,15 +125,25 @@
          ;(printf "target-distance: ~a~n" target-distance)
          (control-set-state-deg/sec accel steer)
          
-         (gfx-color 255 255 255)
-         (gfx-clear)
-         (gfx-color 255 0 0)
-         (draw-remembered)
-         (gfx-color 0 255 0)
-         (gfx-circle 0 0 5)
-         (gfx-color 0 0 255)
-         (gfx-circle (vec2-x pos) (vec2-y pos) 5)
-         (gfx-color 128 128 255)
-         (gfx-line (vec2-x pos) (vec2-y pos) (vec2-x target) (vec2-y target))
-         (gfx-show)
-         )))))
+         (when (gfx-on?)
+           ; background
+           (gfx-color 255 255 255)
+           (gfx-clear)
+           ; draw remembered
+           (gfx-color 255 0 0)
+           (draw-remembered)
+           ; draw home base
+           (gfx-color 0 255 0)
+           (gfx-circle 0 0 5)
+           ; draw A* path
+           (gfx-color 128 128 128)
+           (draw-path pos)
+           ; draw line to target
+           (gfx-color 128 128 255)
+           (gfx-line (vec2-x pos) (vec2-y pos) (vec2-x target) (vec2-y target))
+           ; draw rover
+           (gfx-color 0 0 255)
+           (gfx-circle (vec2-x pos) (vec2-y pos) 5)
+           ; show it
+           (gfx-show)
+           ))))))
