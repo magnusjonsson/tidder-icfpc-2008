@@ -24,7 +24,8 @@
 
 (define (get-char)
   (let ((c (read-char in)))
-    (when (eof-object? c) (exit))
+    (when (eof-object? c)
+      (raise (make-exn:fail:network "EOF" (current-continuation-marks))))
     c))
 
 (define (send-string string)
