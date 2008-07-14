@@ -121,6 +121,19 @@
             (arc (make-arc obj ccw-obj cw-obj)))
        (make-directed-arc arc dir)))))
 
+(define (test-ti->da)
+  (define obj1 (make-obj 'boulder (make-vec2 0 0) 15))
+  (define obj2 (make-obj 'boulder (make-vec2 10 0) 15))
+  (define obj3 (make-obj 'boulder (make-vec2 20 0) 15))
+  (define tangent (list obj2 1 (make-vec2 10 15)))
+  (remember-object obj1)
+  (remember-object obj2)
+  (remember-object obj3)
+  (let ((da (tangent-info->directed-arc tangent)))
+    (printf "~a~n" (tangent-info->directed-arc tangent))
+    (assert (eq? (arc-ccw-obj (directed-arc-arc da)) obj1))
+    (assert (eq? (arc-cw-obj (directed-arc-arc da)) obj3))))
+
 (define (reachable-states state)
   (match state
     ((struct vec2 (0 0)) ; home
