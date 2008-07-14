@@ -26,8 +26,8 @@
 ; are circled around, plus the direction in which we avoid the obstacles.
 ; The empty list corresponds to the path that goes directly to the end point.
 
-(define safety-margin 2.0)
-(define lower-bound-wiggle 0.2)
+(define safety-margin 3.0)
+(define lower-bound-wiggle 0.0)
 
 (define (safe-radius o)
   (+ safety-margin
