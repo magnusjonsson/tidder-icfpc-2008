@@ -28,6 +28,7 @@
                      ; add more here as needed
                      unobstructed-tangents-ccw ; list of (list point1 obj2 dir2 point2)
                      unobstructed-tangents-cw ; list of (list point1 obj2 dir2 point2)
+                     neighbours
                      ) #:mutable)
 
 (define obj-count 0)
@@ -71,9 +72,11 @@
                   (add-reverse-tangents o -1 unobstructed-tangents-cw)
                   ; todo: add the tangents to the symmetric object
                   (hash-set! remembered o
-                             (make-info o
+                             (make-info o ; parent
                                         unobstructed-tangents-ccw
-                                        unobstructed-tangents-cw))
+                                        unobstructed-tangents-cw
+                                        '() ; neighbours
+                                        ))
                   (inc! obj-count)
                   (inc! group-count)
                   ; possibly merge it with existing groups
@@ -124,11 +127,10 @@
                    (set-info-unobstructed-tangents-cw!
                     info (do-filter 1 (info-unobstructed-tangents-cw info))))))
 
-(define neighbors (make-hash))
-
 (define (add-neighbor a b)
   (define (add-single-neighbor a b)
-    (hash-set! neighbors a (cons b (hash-ref neighbors a '()))))
+    (let ((info (hash-ref remembered a)))
+      (set-info-neighbours! info (cons b (info-neighbours info)))))
   (add-single-neighbor a b)
   (add-single-neighbor b a))
 
@@ -222,7 +224,7 @@
                     (unless (and best-angle (< best-angle t))
                       (set! best-angle t)
                       (set! best-obj o)))))
-              (hash-ref neighbors obj '()))
+              (info-neighbours (hash-ref remembered obj)))
     best-obj))
 
 (define (objects-overlap? o1 o2)
