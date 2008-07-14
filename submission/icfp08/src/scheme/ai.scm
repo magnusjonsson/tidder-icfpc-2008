@@ -26,6 +26,11 @@
 
 (define last-dir-target-diff 0)
 
+;Martian avoidance parameters
+(define viewing-width (/ 60 2))
+(define viewing-distance 30)
+(define move-away-strength-1/ 3)
+
 (define (handle-message m)
   ;(when (< (random) .1) (/ 0))
   ;(printf "~a~n" m)
@@ -58,10 +63,33 @@
        (speedometer-update t pos)
        (turnometer-update t dir)
        
-       (let* ((target-dir (vec2-angle-deg (vec2- target pos)))
+       (let* ((relative (curryr vec2- pos))
+              (target-rel (relative target))
+              (target-dir (vec2-angle-deg target-rel))
+              (martians-rel
+               (map (compose relative vehicle-pos)
+                    (filter vehicle? (telemetry-seen m))))
+              (ahead? (lambda (x) (< (abs (deg- target-dir x)) viewing-width)))
+              (martians-close
+               (filter (compose (curryr < viewing-distance) vec2-length) martians-rel))
+              (martians-ahead
+               (filter (compose ahead? vec2-angle-deg) martians-close))
+              (martian-mean-dir
+               (and (not (null? martians-ahead))
+                    (vec2-angle-deg
+                     (apply vec2+ (map vec2-normalize martians-ahead)))))
+              (adjusted-dir
+               (if martian-mean-dir
+                   (vec2-angle-deg
+                    (vec2+ (vec2-scale (sub1 move-away-strength-1/)
+                                       (vec2-normalize target-rel))
+                           (angle-deg->vec2
+                            (- target-dir (- (- target-dir martian-mean-dir))))))
+                   target-dir))
+              
               ; search forwards to see at what point we will crash going forwards, if any.
               (crash-distance (first-hit-time pos (angle-deg->vec2 dir)))
-              (dir-target-diff (deg- target-dir dir))
+              (dir-target-diff (deg- adjusted-dir dir))
               (steer (* 2 dir-target-diff))
               (wanted-speed (min
                              ; drive slower when trying to turn
@@ -76,7 +104,10 @@
               (speed (speedometer-value))
               
               (accel (sgn (- wanted-speed speed))))
+         
          (printf "crash-distance: ~a~n" crash-distance)
          (printf "accel: ~a steer: ~a  speed: ~a wanted-speed: ~a~n" accel steer speed wanted-speed)
+         (unless (> .001 (abs (- target-dir adjusted-dir)))
+           (printf "Original direction: ~a~nAdjusted:~a~n" target-dir adjusted-dir))
          ;(printf "target-distance: ~a~n" target-distance)
          (control-set-state-deg/sec accel steer))))))
