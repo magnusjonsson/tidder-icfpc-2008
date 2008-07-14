@@ -234,6 +234,16 @@
     (pretty-list-of-length 2 (reachable-states (make-vec2 10 0)))
     ))
 
+(define (test-arc-reachability2)
+  (clear-remembered)
+  (let ((o1 (make-obj 'crater (make-vec2 -1 2) 2))
+        (o2 (make-obj 'crater (make-vec2  0 2) 2))
+        (o3 (make-obj 'crater (make-vec2  1 2) 2))
+        (o4 (make-obj 'crater (make-vec2 10 3) 2)))
+    (remember-objects (list o1 o2 o3 o4))
+    (pretty-list-of-length 4 (reachable-states (make-directed-arc (make-arc o2 o3 o1) -1)))
+    ))
+
 
 (define (state-center s)
   (match s
@@ -349,8 +359,6 @@
     (path
      (fall-back "astar found no solution: ~a~n" path))))
 
-
-
 (define (draw-path from-pos)
   (when (and current-path (gfx-on?))
     (dolist (state (car current-path))
@@ -358,4 +366,14 @@
               (gfx-line (vec2-x from-pos) (vec2-y from-pos)
                         (vec2-x to-pos) (vec2-y to-pos))
               (set! from-pos to-pos)))))
-                        
+
+
+(define (test)
+  (test-arc-contains-point)
+  (test-ti->da)
+  (test-circle-reachability)
+  (test-arc-reachability)
+  (test-arc-reachability2)
+  (astar-test-wall)
+  (astar-test-barely-nudging-wall)
+  )
