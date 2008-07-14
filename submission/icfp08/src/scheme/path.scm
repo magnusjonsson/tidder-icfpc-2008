@@ -279,10 +279,11 @@
   (define (lower-bound state)
      ; not really a lower bound, but this reduces cpu usage
     (distance start state))
+  (define memoized-lower-bound (memoize 2000 lower-bound))
 
   (define (goal? state) (equal? state vec2-origin))
   (let ((result (let/ec return
-                  (a* start goal? lower-bound generate-moves!
+                  (a* start goal? memoized-lower-bound generate-moves!
                       (lambda (solution cost) (return (list (reverse solution) cost))))
                   #f)))
     (printf "num calls to reachable-states: ~a~n" num-calls-to-reachable-states)
