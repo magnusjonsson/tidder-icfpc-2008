@@ -4,7 +4,7 @@
          ray-circle-intersection-times
          ray-circle-intersection-first-time
          ray-circle-intersection-first-point
-         curve-circle-intersection-angle
+         curve-circle-intersection-angle curve-circle-intersection-angle2
          )
 (require "vec2.scm")
 (require "misc-syntax.ss")
@@ -97,32 +97,27 @@
 (define (curve-circle-intersection-angle curve-start curve-center direction
                                          obj-center obj-radius)
   ; see http://local.wasp.uwa.edu.au/~pbourke/geometry/2circle/ for formulas
-  (let* ((curve-radius (vec2-length (vec2- curve-start curve-center)))
-         (d-vec (vec2- obj-center curve-center))
-         (d-squared (vec2-length-squared d-vec))
-         (d (sqrt d-squared)))
-    (and (< d (+ obj-radius curve-radius)) ; circles must intersect
-         (> d (abs (- curve-radius obj-radius))) ; and not contain each other
-         (let* ((s (+ (sqr curve-radius) (- (sqr obj-radius)) d-squared))
-                (a (/ s (* 2 d)))
-                (p2 (vec2+ curve-center (vec2-scale (/ a d) d-vec)))
-                
-                (h (sqrt (- (sqr curve-radius) (sqr a))))
-                (h-vec (vec2-scale (/ h d) (vec2-rotate-ccw-90 d-vec)))
-                
-                (p3-1 (vec2+ p2 h-vec))
-                (p3-2 (vec2- p2 h-vec))
-                
-                (angle1 (curve-angle curve-start curve-center p3-1 direction))
-                (angle2 (curve-angle curve-start curve-center p3-2 direction)))
-           (min angle1 angle2)))))
+  (let ((curve-radius (vec2-length (vec2- curve-start curve-center))))
+    (curve-circle-intersection-angle2 curve-start curve-center curve-radius
+                                      direction obj-center obj-radius)))
+
+; same as above, but takes curve radius as an explicit parameter
+(define (curve-circle-intersection-angle2 curve-start curve-center curve-radius
+                                          direction obj-center obj-radius)
+  (match (circle-circle-intersection
+            curve-center curve-radius obj-center obj-radius)
+      (#f #f)
+      ((cons p3-1 p3-2)
+       (let ((angle1 (curve-angle curve-start curve-center p3-1 direction))
+             (angle2 (curve-angle curve-start curve-center p3-2 direction)))
+         (min angle1 angle2)))))
 
 (define (circle-circle-intersection c1 r1 c2 r2)
   ; see http://local.wasp.uwa.edu.au/~pbourke/geometry/2circle/ for formulas
   (let* ((d-vec (vec2- c2 c1))
          (d-squared (vec2-length-squared d-vec))
          (d (sqrt d-squared)))
-    (and (< d (+ r1 r2)) ; circles must intersect
+    (and (<= d (+ r1 r2)) ; circles must intersect
          (> d (abs (- r1 r2))) ; and not contain each other
          (let* ((s (+ (sqr r1) (- (sqr r2)) d-squared))
                 (a (/ s (* 2 d)))

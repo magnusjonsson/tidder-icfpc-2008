@@ -89,8 +89,9 @@
   ; is this point on the arc's host object inside the arc?
   ; todo: implement
   (define (hit dir obj)
-    (curve-circle-intersection-angle
-     point (obj-pos (arc-host-obj arc)) dir (obj-pos obj) (obj-radius obj)))
+    (curve-circle-intersection-angle2
+     point (obj-pos (arc-host-obj arc)) (obj-radius (arc-host-obj arc)) dir
+     (obj-pos obj) (obj-radius obj)))
   (or (not (arc-ccw-obj arc)) (not (arc-cw-obj arc))
       (let ((ccw-angle-to-ccw-obj (hit 1 (arc-ccw-obj arc)))
             (ccw-angle-to-cw-obj (hit 1 (arc-cw-obj arc)))
