@@ -133,7 +133,7 @@
        '())
       ((= d-squared radius-sum-squared)
        ; they nudge at one point
-       (nudge-point))
+       (list (nudge-point)))
       (else
        ; should have two intersection points
        (let* ((s (+ (sqr r1) (- (sqr r2)) d-squared))
