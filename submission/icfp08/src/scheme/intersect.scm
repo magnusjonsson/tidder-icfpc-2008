@@ -104,31 +104,51 @@
 ; same as above, but takes curve radius as an explicit parameter
 (define (curve-circle-intersection-angle2 curve-start curve-center curve-radius
                                           direction obj-center obj-radius)
+  (define (point-angle point)
+    (curve-angle curve-start curve-center point direction))
   (match (circle-circle-intersection
             curve-center curve-radius obj-center obj-radius)
-      (#f #f)
-      ((cons p3-1 p3-2)
-       (let ((angle1 (curve-angle curve-start curve-center p3-1 direction))
-             (angle2 (curve-angle curve-start curve-center p3-2 direction)))
-         (min angle1 angle2)))))
+    ((list) #f)
+    ((list p3)
+     (point-angle p3))
+    ((list p3-1 p3-2)
+     (min (point-angle p3-1) (point-angle p3-2)))))
 
 (define (circle-circle-intersection c1 r1 c2 r2)
   ; see http://local.wasp.uwa.edu.au/~pbourke/geometry/2circle/ for formulas
   (let* ((d-vec (vec2- c2 c1))
          (d-squared (vec2-length-squared d-vec))
-         (d (sqrt d-squared)))
-    (and (<= d (+ r1 r2)) ; circles must intersect
-         (> d (abs (- r1 r2))) ; and not contain each other
-         (let* ((s (+ (sqr r1) (- (sqr r2)) d-squared))
-                (a (/ s (* 2 d)))
-                (p2 (vec2+ c1 (vec2-scale (/ a d) d-vec)))
-                
-                (h (sqrt (- (sqr r1) (sqr a))))
-                (h-vec (vec2-scale (/ h d) (vec2-rotate-ccw-90 d-vec)))
-                
-                (p3-1 (vec2+ p2 h-vec))
-                (p3-2 (vec2- p2 h-vec)))
-           (cons p3-1 p3-2)))))
+         (d (sqrt d-squared))
+         (radius-sum (+ r1 r2))
+         (radius-sum-squared (sqr radius-sum)))
+    (define (nudge-point)
+      (vec2+ (vec2-scale (/ r2 radius-sum) c1)
+             (vec2-scale (/ r1 radius-sum) c2)))
+    (cond
+      ((> d-squared radius-sum-squared)
+       ; to far from each other
+       '())
+      ((<= d-squared (sqr (- r1 r2)))
+       ; one contains the other
+       '())
+      ((= d-squared radius-sum-squared)
+       ; they nudge at one point
+       (nudge-point))
+      (else
+       ; should have two intersection points
+       (let* ((s (+ (sqr r1) (- (sqr r2)) d-squared))
+              (a (/ s (* 2 d)))
+              (p2 (vec2+ c1 (vec2-scale (/ a d) d-vec)))
+              (h-squared (- (sqr r1) (sqr a))))
+         (if (not (> h-squared 0))
+             ; numerical error, looks like a nudge...
+             (list (nudge-point))
+             ; ok
+             (let* ((h (sqrt h-squared))
+                    (h-vec (vec2-scale (/ h d) (vec2-rotate-ccw-90 d-vec)))
+                    (p3-1 (vec2+ p2 h-vec))
+                    (p3-2 (vec2- p2 h-vec)))
+               (list p3-1 p3-2))))))))
 
 (define (test)
   (define (should-intersect p0 p1 c r)
