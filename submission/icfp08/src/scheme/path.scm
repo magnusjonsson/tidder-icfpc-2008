@@ -227,7 +227,7 @@
 
 (define (astar start)
   (define (generate-moves! state yield!)
-    (map (lambda (x) (yield! 1 x x)) (reachable-states state)))
+    (for-each (lambda (x) (yield! 1 x x)) (reachable-states state)))
   (define (lower-bound state) 0)
   (define (goal? state) (match state ((struct vec2 (0 0)) #t) (else #f)))
   (let/ec return
