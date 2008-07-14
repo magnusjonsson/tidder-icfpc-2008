@@ -94,4 +94,12 @@
   (ex (circle-circle-tangent (make-vec2 0 -1) 1 1
                              (make-vec2 10 2) 2 -1)
       "(0,0) (10,0)")
+  
+  (ex (circle-circle-tangent (make-vec2 0 1) 1 1
+                             (make-vec2 10 1) 1 1)
+      "(0,0) (10,0)")
+  
+  (ex (circle-circle-tangent (make-vec2 10 0) 1 -1
+                             (make-vec2 5 1) 1 -1)
+      "not crash")
   )

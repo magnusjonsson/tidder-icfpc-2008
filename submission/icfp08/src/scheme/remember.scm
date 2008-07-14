@@ -5,22 +5,21 @@
 (require "intersect.scm")
 (require "tangent.scm")
 (require "misc-syntax.ss")
+(require (only-in rnrs/base-6 assert))
 
 (provide remember-objects remember-object
          print-remembered clear-remembered
          first-hit-obj first-hit-time
          first-curve-hit-angle first-curve-hit-obj
          line-obstructed?
-         unobstructed-point-obj-tangents)
+         unobstructed-point-obj-tangents
+         unobstructed-obj-obj-tangents)
 
 ; We store all objects seen.
 ; The value corresponding to each object is a parent object as in the Union-Find algorithm.
 ;
 ; The Union-Find algorithm is used to merge groups.
 (define remembered (make-hash))
-
-(define (reset)
-  (set! remembered (make-hash)))
 
 (define (remember-objects objects)
   (for-each remember-object objects))
@@ -72,27 +71,28 @@
 (define (clear-remembered)
   (set! remembered (make-hash)))
 
-(define (line-obstructed? p0 p1)
-  (let ((t (first-hit-time p0 (vec2- p1 p0))))
+(define (line-obstructed? p0 p1 (tabu-obj-list '()))
+  (let ((t (first-hit-time p0 (vec2- p1 p0) tabu-obj-list)))
     (and t (< t 1))))
 
-(define (first-hit-time origin ray)
-  (let ((b (first-hit-obj origin ray)))
+(define (first-hit-time origin ray (tabu-obj-list '()))
+  (let ((b (first-hit-obj origin ray tabu-obj-list)))
     (and b (ray-circle-intersection-first-time origin ray (obj-pos b) (obj-radius b)))))
 
-(define (first-hit-obj origin ray)
+(define (first-hit-obj origin ray (tabu-obj-list '()))
   (let ((best-time #f)
         (best-obj #f))
     (hash-for-each remembered
                    (lambda (obj parent)
                      ; if there's an intersection that happens before
                      ; target-distance, (return obj)
-                     (let ((t (ray-circle-intersection-first-time
-                               origin ray (obj-pos obj) (obj-radius obj))))
-                       (when t
-                         (unless (and best-time (< best-time t))
-                           (set! best-obj obj)
-                           (set! best-time t))))))
+                     (when (not (member obj tabu-obj-list))
+                       (let ((t (ray-circle-intersection-first-time
+                                 origin ray (obj-pos obj) (obj-radius obj))))
+                         (when t
+                           (unless (and best-time (< best-time t))
+                             (set! best-obj obj)
+                             (set! best-time t)))))))
     best-obj))
 
 (define (first-curve-hit-angle curve-start curve-center direction)
@@ -127,12 +127,11 @@
   (<= (vec2-distance (obj-pos o1) (obj-pos o2))
       (+ (obj-radius o1) (obj-radius o2))))
 
-
 (define (unobstructed-point-obj-tangents point)
   (let ((result '()))
     (define (consider obj dir)
       (let ((tangent-point (tangent point (obj-pos obj) (obj-radius obj) (- dir))))
-        (unless (line-obstructed? point tangent-point)
+        (unless (line-obstructed? point tangent-point (list obj))
           (push! result (list obj dir tangent-point)))))
     (hash-for-each remembered
                    (lambda (obj _)
@@ -140,9 +139,67 @@
                      (consider obj 1)))
     result))
 
+(define (unobstructed-obj-obj-tangents obj1 dir1)
+  (let ((result '()))
+    (define (consider obj2 dir2)
+      (let ((tangent-points (circle-circle-tangent (obj-pos obj1) (obj-radius obj1) dir1
+                                                   (obj-pos obj2) (obj-radius obj2) dir2)))
+        (unless (line-obstructed? (car tangent-points) (cdr tangent-points) (list obj1 obj2))
+          (push! result (list (car tangent-points)
+                              obj2 dir2 (cdr tangent-points))))))
+    (hash-for-each remembered
+                   (lambda (obj2 _)
+                     (when (not (equal? obj1 obj2))
+                       (consider obj2 -1)
+                       (consider obj2  1))))
+    result))
+
 (define (test)
-  (reset)
+  (test1)
+  (test2)
+  (test3))
+
+(define (test1)
+  (clear-remembered)
   (remember-objects (list (make-obj 'crater (make-vec2 10 0) 1)))
   (printf "~a~n~n" (unobstructed-point-obj-tangents (make-vec2 0 0)))
   (remember-objects (list (make-obj 'crater (make-vec2 5 1) 1)))
   (printf "~a~n~n" (unobstructed-point-obj-tangents (make-vec2 0 0))))
+
+(define (test2)
+  (clear-remembered)
+  (let ((o1 (make-obj 'crater (make-vec2 10 0) 1))
+        (o2 (make-obj 'crater (make-vec2 5 0) 2))
+        (o3 (make-obj 'crater (make-vec2 0 0) 1)))
+    (remember-objects (list o1 o2 o3))
+    (assert (line-obstructed? (make-vec2 2 0) (make-vec2 8 0) (list)))
+    (assert (line-obstructed? (make-vec2 2 0) (make-vec2 8 0) (list o1 o3)))
+    (assert (not (line-obstructed? (make-vec2 2 0) (make-vec2 8 0) (list o1 o2 o3))))
+    ))
+
+
+(define (test3)
+  (define (pretty-list-of-length correct-length list)
+    (printf "list:~n")
+    (dolist (i list)
+            (printf "--> ~a~n" i))
+    (assert (= (length list) correct-length)))
+  (clear-remembered)
+  (let ((o1 (make-obj 'crater (make-vec2 10 0) 1))
+        (o2 (make-obj 'crater (make-vec2 0 0) 1)))
+    (remember-objects (list o1 o2))
+    (pretty-list-of-length 2 (unobstructed-obj-obj-tangents o1 -1))
+    (pretty-list-of-length 2 (unobstructed-obj-obj-tangents o1 1))
+    (pretty-list-of-length 2 (unobstructed-obj-obj-tangents o2 -1))
+    (pretty-list-of-length 2 (unobstructed-obj-obj-tangents o2 1))
+    
+    ; put something between them
+    (let ((o3 (make-obj 'crater (make-vec2 5 0) 2)))
+      (remember-object o3)
+      (pretty-list-of-length 2 (unobstructed-obj-obj-tangents o1 -1))
+      (pretty-list-of-length 2 (unobstructed-obj-obj-tangents o1 1))
+      (pretty-list-of-length 2 (unobstructed-obj-obj-tangents o2 -1))
+      (pretty-list-of-length 2 (unobstructed-obj-obj-tangents o2 1))
+      (pretty-list-of-length 4 (unobstructed-obj-obj-tangents o3 -1))
+      (pretty-list-of-length 4 (unobstructed-obj-obj-tangents o3 1))
+      )))
