@@ -23,8 +23,22 @@
 ; We store all objects seen.
 ; The value corresponding to each object is a parent object as in the Union-Find algorithm.
 ;
-; The Union-Find algorithm is used to merge groups.
-(define remembered (make-hash))
+
+(define-struct info (parent ; used for union-find to group connected objects
+                     ; add more here as needed
+                     unobstructed-tangents-ccw ; list of (list point1 obj2 dir2 point2)
+                     unobstructed-tangents-cw ; list of (list point1 obj2 dir2 point2)
+                     ) #:mutable)
+
+(define obj-count 0)
+(define group-count 0)
+(define remembered (make-hash))  ; obj -> info
+
+(define (clear-remembered)
+  (set! remembered (make-hash))
+  (set! obj-count 0)
+  (set! group-count 0)
+  (set! dirty #t))
 
 (define dirty #t)
 
@@ -34,19 +48,81 @@
 (define (clear-remembered-dirty)
   (set! dirty #f))
 
-(define (remember-objects objects)
-  (for-each remember-object objects))
-
 (define (remember-object o)
-  (when (and (obj? o)
-             (not (equal? 'home-base (obj-kind o)))
-             (not (hash-ref remembered o #f)))
-    (hash-set! remembered o o)
-    (set! dirty #t)
-    ; possibly merge it with existing groups
-    (merge-new-obj o)
-    ;update path here
-    ))
+  (remember-objects (list o)))
+
+; more efficient than remember-object
+(define (remember-objects objects)
+  (let ((new-objects (filter (lambda (o)
+                               (and (obj? o)
+                                    (not (equal? 'home-base (obj-kind o)))
+                                    (not (hash-ref remembered o #f))))
+                             objects)))
+    ;(printf "received new objects: ~a~n" new-objects)
+    ;(printf "checking old tangents~n")
+    (check-old-tangents new-objects)
+    (for-each (lambda (o)
+                (assert (obj? o))
+                (let ((unobstructed-tangents-ccw (find-unobstructed-obj-obj-tangents o 1))
+                      (unobstructed-tangents-cw (find-unobstructed-obj-obj-tangents o -1)))
+                  ;(printf "adding reverse tangents ccw~n")
+                  (add-reverse-tangents o 1 unobstructed-tangents-ccw)
+                  ;(printf "adding reverse tangents cw~n")
+                  (add-reverse-tangents o -1 unobstructed-tangents-cw)
+                  ; todo: add the tangents to the symmetric object
+                  (hash-set! remembered o
+                             (make-info o
+                                        unobstructed-tangents-ccw
+                                        unobstructed-tangents-cw))
+                  (inc! obj-count)
+                  (inc! group-count)
+                  ; possibly merge it with existing groups
+                  ;(printf "merging obj to groups~n")
+                  (merge-new-obj o)
+                  ;(printf "done merging~n")
+                  (set! dirty #t)))
+              new-objects)))
+
+(define (test-remember-objects)
+  (clear-remembered)
+  (remember-objects
+   (list (make-obj 'crater (make-vec2 50.0 -5.0) 5.0) (make-obj 'crater (make-vec2 50.0 5.0) 5.0))))
+
+(define (add-reverse-tangents obj1 dir1 tangents)
+  (for-each (lambda (uut)
+              (match uut
+                ((list point1 obj2 dir2 point2)
+                 (add-tangent obj2 (- dir2) point2 obj1 (- dir1) point1))))
+            tangents))
+
+(define (add-tangent obj1 dir1 point1 obj2 dir2 point2)
+  (let ((info (hash-ref remembered obj1))
+        (tangent (list point1 obj2 dir2 point2)))
+    (match dir2
+      (1 (set-info-unobstructed-tangents-ccw!
+          info (cons tangent (info-unobstructed-tangents-ccw info))))
+      (-1 (set-info-unobstructed-tangents-cw!
+           info (cons tangent (info-unobstructed-tangents-cw info)))))))
+                      
+
+(define (check-old-tangents new-objects)
+  (define (do-filter dir1 unobstructed-tangents)
+    (filter (lambda (ut)
+              (match ut
+                ((list point1 obj2 dir2 point2)
+                 (andmap (lambda (new-obj)
+                           (not (line-intersects-circle? point1 point2
+                                                         (obj-pos new-obj)
+                                                         (obj-radius new-obj))))
+                         new-objects))))
+            unobstructed-tangents))
+
+  (hash-for-each remembered
+                 (lambda (obj info)
+                   (set-info-unobstructed-tangents-ccw!
+                    info (do-filter -1 (info-unobstructed-tangents-ccw info)))
+                   (set-info-unobstructed-tangents-cw!
+                    info (do-filter 1 (info-unobstructed-tangents-cw info))))))
 
 (define neighbors (make-hash))
 
@@ -68,17 +144,23 @@
 (define (merge a b)
   (let ((a (find a))
         (b (find b)))
-    (when (< (random) 0.5)
-      (swap! a b))
-    (hash-set! remembered a b)))
+    (when (not (equal? a b))
+      (when (< (random) 0.5)
+        (swap! a b))
+      (set-info-parent! (hash-ref remembered a) b)
+      (dec! group-count)
+      ;(printf "~a objs in ~a groups~n" obj-count group-count)
+      (assert (> obj-count group-count 0))
+      )))
 
 ; the Find part of Union-Find
 (define (find o)
-  (let ((p (hash-ref remembered o #f)))
+  (let* ((o-info (hash-ref remembered o #f))
+         (p (info-parent o-info)))
     (if (equal? p o)
         o
         (let ((g (find p)))
-          (hash-set! remembered o g)
+          (set-info-parent! o-info g)
           g))))
 
 (define (same-group? a b)
@@ -90,10 +172,6 @@
                  (lambda (key value)
                    (printf " ~a" key)))
   (printf "~n"))
-
-(define (clear-remembered)
-  (set! remembered (make-hash))
-  (set! dirty #t))
 
 (define (line-obstructed? p0 p1 (tabu-obj-list '()))
   (let ((t (first-hit-time p0 (vec2- p1 p0) tabu-obj-list)))
@@ -162,8 +240,14 @@
                      (consider obj -1)
                      (consider obj 1)))
     result))
-
+  
 (define (unobstructed-obj-obj-tangents obj1 dir1)
+  (let ((info (hash-ref remembered obj1)))
+    (match dir1
+      (1 (info-unobstructed-tangents-ccw info))
+      (-1 (info-unobstructed-tangents-cw info)))))
+
+(define (find-unobstructed-obj-obj-tangents obj1 dir1)
   (let ((result '()))
     (define (consider obj2 dir2)
       (let ((tangent-points (circle-circle-tangent (obj-pos obj1) (obj-radius obj1) dir1
@@ -174,14 +258,19 @@
     (hash-for-each remembered
                    (lambda (obj2 _)
                      (when (not (equal? obj1 obj2))
-                       (consider obj2 -1)
-                       (consider obj2  1))))
+                       ; straight loop
+                       (consider obj2 dir1)
+                       (unless (objects-overlap? obj1 obj2)
+                         ; zig-zagging between overlapping objects doesn't
+                         ; make sense
+                         (consider obj2  (- dir1))))))
     result))
 
 (define (test)
   (test1)
   (test2)
-  (test3))
+  (test3)
+  (test-remember-objects))
 
 (define (test1)
   (clear-remembered)
@@ -200,7 +289,6 @@
     (assert (line-obstructed? (make-vec2 2 0) (make-vec2 8 0) (list o1 o3)))
     (assert (not (line-obstructed? (make-vec2 2 0) (make-vec2 8 0) (list o1 o2 o3))))
     ))
-
 
 (define (test3)
   (define (pretty-list-of-length correct-length list)
