@@ -46,3 +46,5 @@
                     score
                     )
   #:transparent)
+
+(define-struct inbox-empty () #:transparent)

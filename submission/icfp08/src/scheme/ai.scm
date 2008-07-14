@@ -32,6 +32,9 @@
 (define viewing-distance 30)
 (define move-away-strength-1/ 3)
 
+; whether to compute something on inbox-empty
+(define current-telemetry #f)
+
 (define (handle-message m)
   ;(when (< (random) .1) (/ 0))
   ;(printf "~a~n" m)
@@ -63,6 +66,22 @@
      (when (remembered-dirty?)
        (clear-remembered-dirty)
        (must-recompute-path))
+     
+     (set! current-telemetry m)
+     
+     (let* ((t (telemetry-time m))
+            (self (telemetry-vehicle m))
+            (pos (vehicle-pos self))
+            (dir (vehicle-dir self))
+            (speed (vehicle-speed self)))
+       
+       (speedometer-update t pos)
+       (turnometer-update t dir)))
+     
+    ((inbox-empty? m)
+     (when current-telemetry
+       (set! m current-telemetry)
+       (set! current-telemetry #f)
 
      (let* ((t (telemetry-time m))
             (self (telemetry-vehicle m))
@@ -73,8 +92,6 @@
        
        (printf "~n")
        (printf "target: ~a ~n" target)
-       (speedometer-update t pos)
-       (turnometer-update t dir)
        
        (let* ((relative (curryr vec2- pos))
               (target-rel (relative target))
@@ -146,4 +163,4 @@
            (gfx-circle (vec2-x pos) (vec2-y pos) 5)
            ; show it
            (gfx-show)
-           ))))))
+           )))))))
