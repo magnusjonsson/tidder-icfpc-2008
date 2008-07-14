@@ -353,20 +353,24 @@
      (list home))
     (else (list))))
 
-(define (get-path-goal pos path)
+(define (get-path-goal pos path default)
   (printf "trying to reuse path")
   (match path
     ((cons goal rest)
      (let ((goal-point (get-goal-point pos goal))
            (goal-ignore-list (get-goal-ignore-list goal)))
        (cond ((line-obstructed? pos goal-point goal-ignore-list)
-              (set! current-path rest)
-              (get-path-goal pos rest))
-             (else goal-point))))
-    ((list) #f)))
+              (get-path-goal pos rest default))
+             (else (set! current-path (cons goal rest)) ; cut off earlier nodes
+                   ; search for a later hit
+                   (get-path-goal pos rest goal-point)))))
+    ((list)
+     ; everythings blocked
+     (unless default (set! current-path #f))
+     default)))
 
 (define (compute-target pos)
-  (or (and current-path (get-path-goal pos current-path))
+  (or (and current-path (get-path-goal pos current-path #f))
       (and (compute-path pos) (get-goal-point pos (car current-path)))
       (old-compute-target pos)))
 
