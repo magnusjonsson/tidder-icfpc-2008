@@ -127,12 +127,12 @@
                 (steer (* 2 dir-target-diff))
                 (wanted-speed (min
                                ; drive slower when trying to turn
-                               (/ 1000.0 (max 0.001 (abs steer)))
+                               (/ 320.0 (max 0.001 (abs steer)))
                                ; drive slower when rotating
-                               (/ 1000.0 (max 0.001 (abs (turnometer-value))))
+                               (/ 320.0 (max 0.001 (abs (turnometer-value))))
                                ; try to be able to stop in time if something shows up ahead.
-                               (* 3.0 (sqrt (max 0 (- (or crash-distance +inf.0) safety-margin))))
-                               (* 3.0 (sqrt (max 0 (- max-sensor safety-margin))))
+                               (* 2.0 (sqrt (max 0 (- (or crash-distance +inf.0) safety-margin))))
+                               (* 2.0 (sqrt (max 0 (- max-sensor safety-margin))))
                                ))
                 (speed (speedometer-value))
                 
