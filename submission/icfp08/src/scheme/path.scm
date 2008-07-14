@@ -341,8 +341,7 @@
           (thread (lambda ()
                     (set! current-path (astar pos))
                     (set! astar-thread #f))))
-    ;Wait a little in case it's done quickly
-    (sleep 5))
+    (sleep))
   
   (printf "astar solution: ~a~n" current-path)
   (when current-path
@@ -375,7 +374,7 @@
                  solution)
        (when (not last-reachable-point) (printf "path contains no reachable goals: ~a~n" solution))
        last-reachable-point))
-    (else (printf "no solution found") #f)))
+    (else (printf "no solution found~n") #f)))
 
 (define (compute-target pos)
   (or (and current-path (get-path-goal pos current-path))
