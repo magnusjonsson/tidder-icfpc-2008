@@ -9,7 +9,7 @@
 (require (only-in rnrs/base-6 assert))
 (require "misc-syntax.ss")
 
-(provide safety-margin compute-target)
+(provide safety-margin compute-target must-recompute-path)
 
 ; The idea is to store a "planned path", i.e. the path we will follow if no
 ; information arrives, and to recompute it whenever the planned path turns out
@@ -24,13 +24,13 @@
 ; are circled around, plus the direction in which we avoid the obstacles.
 ; The empty list corresponds to the path that goes directly to the end point.
 
-(define safety-margin 2.0) ; 100% of vehicle's width
+(define safety-margin 2.0)
 
 (define (safe-radius o)
   (+ safety-margin
      (obj-radius o)))
 
-(define (compute-target pos)
+(define (old-compute-target pos)
   ; pos = position of our rover
   (safe-point pos (make-vec2 0 0) #f))
 
@@ -82,6 +82,11 @@
                                             (obj-pos blocker) (safe-radius blocker) direction))
                   (target-on-blocker (cdr t)))
              (safe-point pos target-on-blocker blocker)))))))
+
+
+;
+; Beginning of new A* based code
+;
 
 (define-struct arc (host-obj ccw-obj cw-obj) #:transparent)
 
@@ -227,14 +232,29 @@
     (pretty-list-of-length 2 (reachable-states (make-vec2 10 0)))
     ))
 
+(define (distance state1 state2)
+  (define (to-vec2 s)
+    (cond ((vec2? s) s)
+          ((directed-arc? s) (obj-pos (arc-host-obj (directed-arc-arc s))))
+          (#t (assert #f))))
+  (+ (vec2-distance (to-vec2 state1) (to-vec2 state2))
+     (if (directed-arc? state2)
+         (* (- pi 1) (obj-radius (arc-host-obj (directed-arc-arc state2))))
+         0)))
+         
+              
 (define (astar start)
   (define (generate-moves! state yield!)
-    (for-each (lambda (x) (yield! 1 x x)) (reachable-states state)))
-  (define (lower-bound state) 0)
+    (for-each (lambda (x) (yield! (distance start x) x x)) (reachable-states state)))
+  (define (lower-bound state)
+     ; not really a lower bound, but this reduces cpu usage
+    (* 100 (distance start state))
+    )
   (define (goal? state) (equal? state vec2-origin))
   (let/ec return
     (a* start goal? lower-bound generate-moves!
-        (lambda (solution cost) (return (list solution cost))))))
+        (lambda (solution cost) (return (list (reverse solution) cost))))
+    #f))
 
 (define (astar-test-wall)
   ; can we get around a wall?
@@ -257,3 +277,40 @@
   (remember-object obj2)
   (remember-object obj3)
   (astar (make-vec2 5 -60)))
+
+
+(define current-path #f)
+
+(define (must-recompute-path)
+  (set! current-path #f))
+
+(define (compute-path pos)
+  ;(set! current-path (or current-path (astar pos)))
+  (set! current-path (astar pos))
+  (printf "astar solution: ~a~n" current-path)
+  (printf "astar solution length: ~a~n" (length current-path))
+  current-path)
+
+
+(define (compute-target pos)
+  (define (fall-back reason-format . params)
+    (apply printf reason-format params)
+    (printf "Falling back to old-compute-target.~n")
+    (old-compute-target pos))
+  (match (compute-path pos)
+    ((list solution cost)
+     (match solution
+       ((cons first-target more-targets)
+        (match first-target
+          ((struct vec2 (_ _))
+           first-target)
+          ((struct directed-arc (arc direction))
+           (tangent pos (obj-pos (arc-host-obj arc))
+                    (safe-radius (arc-host-obj arc))
+                      (- direction)))
+          (_
+           (fall-back "astar returned strange first target: ~a~n" first-target))))
+       (_
+        (fall-back "astar returned strange solution: ~a~n" solution))))
+    (path
+     (fall-back "astar found no solution: ~a~n" path))))

@@ -6,6 +6,7 @@
 (require "tangent.scm")
 (require "misc-syntax.ss")
 (require (only-in rnrs/base-6 assert))
+(require (prefix-in gfx- "graphics.scm"))
 
 (provide remember-objects remember-object
          print-remembered clear-remembered
@@ -13,13 +14,25 @@
          first-curve-hit-angle first-curve-hit-obj
          line-obstructed?
          unobstructed-point-obj-tangents
-         unobstructed-obj-obj-tangents)
+         unobstructed-obj-obj-tangents
+         remembered-dirty?
+         clear-remembered-dirty
+         draw-remembered
+         )
 
 ; We store all objects seen.
 ; The value corresponding to each object is a parent object as in the Union-Find algorithm.
 ;
 ; The Union-Find algorithm is used to merge groups.
 (define remembered (make-hash))
+
+(define dirty #t)
+
+(define (remembered-dirty?)
+  dirty)
+
+(define (clear-remembered-dirty)
+  (set! dirty #f))
 
 (define (remember-objects objects)
   (for-each remember-object objects))
@@ -29,6 +42,7 @@
              (not (equal? 'home-base (obj-kind o)))
              (not (hash-ref remembered o #f)))
     (hash-set! remembered o o)
+    (set! dirty #t)
     ; possibly merge it with existing groups
     (merge-new-obj o)
     ;update path here
@@ -69,7 +83,8 @@
   (printf "~n"))
 
 (define (clear-remembered)
-  (set! remembered (make-hash)))
+  (set! remembered (make-hash))
+  (set! dirty #t))
 
 (define (line-obstructed? p0 p1 (tabu-obj-list '()))
   (let ((t (first-hit-time p0 (vec2- p1 p0) tabu-obj-list)))
@@ -203,3 +218,12 @@
       (pretty-list-of-length 4 (unobstructed-obj-obj-tangents o3 -1))
       (pretty-list-of-length 4 (unobstructed-obj-obj-tangents o3 1))
       )))
+
+
+
+(define (draw-remembered)
+  (when (gfx-on?)
+    (hash-for-each remembered
+                   (lambda (obj _)
+                     (let ((p (obj-pos obj)))
+                       (gfx-circle (vec2-x p) (vec2-y p) (obj-radius obj)))))))
