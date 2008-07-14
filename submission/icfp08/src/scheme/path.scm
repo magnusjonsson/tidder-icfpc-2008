@@ -252,7 +252,7 @@
               
 (define (astar start)
   (define (generate-moves! state yield!)
-    (for-each (lambda (x) (yield! (distance start x) x x)) (reachable-states state)))
+    (for-each (lambda (x) (yield! (distance state x) x x)) (reachable-states state)))
   (define (lower-bound state)
      ; not really a lower bound, but this reduces cpu usage
     (* 100 (distance start state))
