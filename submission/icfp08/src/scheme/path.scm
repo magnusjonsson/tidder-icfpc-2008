@@ -71,21 +71,22 @@
 (define (tangent-point pos target obstacle direction)
   (if (not obstacle) target
       (let* ((p (tangent pos (obj-pos obstacle) (safe-radius obstacle) direction))
-             (q (tangent target (obj-pos obstacle) (safe-radius obstacle) (- direction)))
-             (arc (curve-angle p (obj-pos obstacle) q (- direction)))
-             (arc-max (first-curve-hit-angle p (obj-pos obstacle) (- direction))))
-        (printf "obstacle ~a~n" obstacle)
-        (cond
-          ((or (not arc-max) (<= arc arc-max)) p) ; "easy case"
-          (else
-           ; the curve around obstacle that we plan to drive is partially blocked
-           ; so change your target to aim at the blocker instead
-           (printf "blocker ~a~n" (first-curve-hit-obj obstacle p (obj-pos obstacle) (- direction)))
-           (let* ((blocker (first-curve-hit-obj obstacle p (obj-pos obstacle) (- direction)))
-                  (t (circle-circle-tangent (obj-pos obstacle) (safe-radius obstacle) direction
-                                            (obj-pos blocker) (safe-radius blocker) direction))
-                  (target-on-blocker (cdr t)))
-             (safe-point pos target-on-blocker blocker)))))))
+;             (q (tangent target (obj-pos obstacle) (safe-radius obstacle) (- direction)))
+;             (arc (curve-angle p (obj-pos obstacle) q (- direction)))
+;             (arc-max (first-curve-hit-angle p (obj-pos obstacle) (- direction))))
+        )p)))
+;        (printf "obstacle ~a~n" obstacle)
+;        (cond
+;          ((or (not arc-max) (<= arc arc-max)) p) ; "easy case"
+;          (else
+;           ; the curve around obstacle that we plan to drive is partially blocked
+;           ; so change your target to aim at the blocker instead
+;           (printf "blocker ~a~n" (first-curve-hit-obj obstacle p (obj-pos obstacle) (- direction)))
+;           (let* ((blocker (first-curve-hit-obj obstacle p (obj-pos obstacle) (- direction)))
+;                  (t (circle-circle-tangent (obj-pos obstacle) (safe-radius obstacle) direction
+;                                            (obj-pos blocker) (safe-radius blocker) direction))
+;                  (target-on-blocker (cdr t)))
+;             (safe-point pos target-on-blocker blocker)))))))
 
 
 ;
@@ -178,7 +179,6 @@
                             (unobstructed-obj-obj-tangents obj1 direction))))))))
 
 
-
 (define (pretty-list-of-length correct-length list)
   (printf "list:~n")
   (dolist (i list)
@@ -258,10 +258,11 @@
        (assert #f))))
 
 (define (distance state1 state2)
-  (+ (vec2-distance (state-center state1) (state-center state2))
-     (if (directed-arc? state2)
-         (* (- pi 1) (obj-radius (arc-host-obj (directed-arc-arc state2))))
-         0)))
+  (let-values (((point1 point2) (segment-points state1 state2)))
+    (+ (vec2-distance point1 point2)
+       (if (directed-arc? state2)
+           (* pi 1/2 (obj-radius (arc-host-obj (directed-arc-arc state2))))
+           0))))
 
 
 (define (astar start)
@@ -382,9 +383,18 @@
 ;     (unless default (set! current-path #f))
 ;     default)))
 
-
-(define (segment-obstructed? state1 state2)
+(define (segment-points state1 state2)
   (cond
+    ((and (vec2? state1) (vec2? state2))
+     (values state1 state2))
+    ((and (vec2? state1) (directed-arc? state2))
+     (let* ((obj2 (arc-host-obj (directed-arc-arc state2)))
+            (point1 state1)
+            (point2 (tangent state1
+                             (obj-pos obj2)
+                             (obj-radius obj2)
+                             (- (directed-arc-direction state2)))))
+       (values point1 point2)))
     ((and (directed-arc? state1) (vec2? state2))
      (let* ((obj1 (arc-host-obj (directed-arc-arc state1)))
             (point1 (tangent state2 
@@ -392,7 +402,7 @@
                              (obj-radius obj1)
                              (directed-arc-direction state1)))
             (point2 state2))
-       (line-obstructed? point1 point2 (list obj1))))
+       (values point1 point2)))
     ((and (directed-arc? state1) (directed-arc? state2))
      (let* ((obj1 (arc-host-obj (directed-arc-arc state1)))
             (obj2 (arc-host-obj (directed-arc-arc state2)))
@@ -401,7 +411,16 @@
                      (obj-pos obj2) (obj-radius obj2) (directed-arc-direction state2)))
             (point1 (car points))
             (point2 (cdr points)))
-       (line-obstructed? point1 point2 (list obj1 obj2))))))
+       (values point1 point2)))))
+
+(define (state-obj state)
+  (if (directed-arc? state)
+      (arc-host-obj (directed-arc-arc state))
+      #f))
+
+(define (segment-obstructed? state1 state2)
+  (let-values (((point1 point2) (segment-points state1 state2)))
+    (line-obstructed? point1 point2 (list (state-obj state1) (state-obj state2)))))
 
 (define (path-obstructed? path)
   (match path
@@ -434,13 +453,13 @@
   (or (and current-path (get-goal-point pos (car current-path)))
       (old-compute-target pos)))
 
-(define (draw-path from-pos)
+(define (draw-path from-state)
   (when (and current-path (gfx-on?))
-    (dolist (state current-path)
-            (let ((to-pos (state-center state)))
-              (gfx-line (vec2-x from-pos) (vec2-y from-pos)
-                        (vec2-x to-pos) (vec2-y to-pos))
-              (set! from-pos to-pos)))))
+    (dolist (to-state current-path)
+            (let-values (((point1 point2) (segment-points from-state to-state)))
+              (gfx-line (vec2-x point1) (vec2-y point1)
+                        (vec2-x point2) (vec2-y point2))
+              (set! from-state to-state)))))
 
 
 (define (test)
