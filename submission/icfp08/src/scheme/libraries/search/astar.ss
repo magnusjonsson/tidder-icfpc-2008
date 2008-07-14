@@ -20,13 +20,15 @@
       (let* ((first-item  (prio:extract-min! frontier)))
         (match first-item
           ((struct item (_ depth state path))
-           (if (goal? state)
-               (success! path depth)
-               (generate-moves! state
-                                (lambda (cost desc next-state)
-                                  (add! (+ depth cost)
-                                        next-state
-                                        (cons desc path)))))))))
+           (let ((best-depth (hash-ref depth-hash state #f)))
+             (when (= depth best-depth)
+               (if (goal? state)
+                   (success! path depth)
+                   (generate-moves! state
+                                    (lambda (cost desc next-state)
+                                      (add! (+ depth cost)
+                                            next-state
+                                            (cons desc path)))))))))))
     (add! 0 start '())
     (let loop ()
       (unless (prio:empty? frontier)
