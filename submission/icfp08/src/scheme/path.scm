@@ -205,3 +205,21 @@
                                                 (make-arc o1 #f #f)
                                                 -1)))
     ))
+
+(define (astar start)
+  (define (generate-moves! state yield!)
+    (map (lambda (x) (yield! 1 x x)) (reachable-states state)))
+  (define (lower-bound state) 0)
+  (define (goal? state) (match state ((struct vec2 (0 0)) #t) (else #f)))
+  (let/ec return
+    (a* start goal? lower-bound generate-moves!
+        (lambda (solution cost) (return (list solution cost))))))
+
+(define (astar-test)
+  (define obj1 (make-obj 'boulder (make-vec2 0 -30) 15))
+  (define obj2 (make-obj 'boulder (make-vec2 10 -30) 15))
+  (define obj3 (make-obj 'boulder (make-vec2 20 -30) 15))
+  (remember-object obj1)
+  (remember-object obj2)
+  (remember-object obj3)
+  (astar (make-vec2 5 -60)))
