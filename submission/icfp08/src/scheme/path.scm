@@ -381,6 +381,37 @@
 ;     (unless default (set! current-path #f))
 ;     default)))
 
+
+(define (segment-obstructed? state1 state2)
+  (cond
+    ((and (directed-arc? state1) (vec2? state2))
+     (let* ((obj1 (arc-host-obj (directed-arc-arc state1)))
+            (point1 (tangent state2 
+                             (obj-pos obj1)
+                             (obj-radius obj1)
+                             (directed-arc-direction state1)))
+            (point2 state2))
+       (line-obstructed? point1 point2 (list obj1))))
+    ((and (directed-arc? state1) (directed-arc? state2))
+     (let* ((obj1 (arc-host-obj (directed-arc-arc state1)))
+            (obj2 (arc-host-obj (directed-arc-arc state2)))
+            (points (circle-circle-tangent
+                     (obj-pos obj1) (obj-radius obj1) (directed-arc-direction state1)
+                     (obj-pos obj2) (obj-radius obj2) (directed-arc-direction state2)))
+            (point1 (car points))
+            (point2 (cdr points)))
+       (line-obstructed? point1 point2 (list obj1 obj2))))))
+
+(define (path-obstructed? path)
+  (match path
+    ((cons state1 rest)
+     (match rest
+       ((cons state2 _)
+        (or (segment-obstructed? state1 state2)
+            (path-obstructed? rest)))
+       (_ #f)))
+     (_ #f)))
+  
 (define (compute-target pos)
   (define (directly-reachable? goal)
     (let ((point (get-goal-point pos goal)))
@@ -393,7 +424,10 @@
                (when (directly-reachable? goal)
                  (set! current-path path))
                (set! path (cdr path))))))
-  (cut-path)
+  (when current-path
+    (cut-path)
+    (when (path-obstructed? current-path)
+      (set! current-path #f)))
   (when (not current-path)
     (compute-path pos))
   (or (and current-path (get-goal-point pos (car current-path)))
